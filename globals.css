@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --line: rgba(243, 237, 225, 0.1);
+  --line-strong: rgba(243, 237, 225, 0.18);
+  --font-cormorant: "Cormorant Garamond", Georgia, serif;
+  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(1200px 800px at 50% -10%, #17150f 0%, #0b0b0b 60%);
+  color: #f3ede1;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* thin scrollbars inside phone */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* ---------- design-system component classes ---------- */
+@layer components {
+  .btn {
+    @apply flex items-center justify-center gap-2 w-full text-[12px] font-medium uppercase transition-colors;
+    padding: 16px 20px;
+    border-radius: 2px;
+    letter-spacing: 1.5px;
+  }
+  .btn:active {
+    opacity: 0.9;
+  }
+  .btn-primary {
+    @apply bg-cream text-[#111];
+  }
+  .btn-primary:hover {
+    background: #ffffff;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-cream;
+    border: 1px solid var(--line-strong);
+  }
+  .btn-ghost:hover {
+    border-color: rgba(243, 237, 225, 0.32);
+  }
+  /* gold CTA repurposed as the flat cream primary (gold kept as accent only) */
+  .btn-gold {
+    @apply bg-cream text-[#111] font-medium;
+  }
+  .btn-gold:hover {
+    background: #ffffff;
+  }
+  .btn-dark {
+    @apply bg-panel2 text-cream;
+    border: 1px solid var(--line);
+  }
+
+  .eyebrow {
+    @apply text-[11px] tracking-[2.5px] uppercase text-gold font-semibold;
+  }
+  .h1 {
+    @apply font-serif text-[29px] font-semibold leading-[1.15] mt-3;
+  }
+  .sub {
+    @apply text-creamDim text-[14.5px] leading-[1.55] mt-2.5;
+  }
+  .hint {
+    @apply text-[12px] text-muted tracking-[.3px];
+  }
+
+  .card {
+    @apply bg-panel;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .field label {
+    @apply block text-[12px] text-muted tracking-[.4px] mb-[7px];
+  }
+  .field input {
+    @apply w-full rounded-xl bg-panel text-cream text-[15px] transition-colors;
+    padding: 15px 16px;
+    border: 1px solid var(--line);
+  }
+  .field input:focus {
+    @apply outline-none border-gold;
+  }
+  .field input::placeholder {
+    color: #5f5a51;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 text-[10px] font-medium uppercase;
+    padding: 4px 9px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    border: 1px solid var(--line);
+  }
+  .badge-free {
+    color: #9ccf9c;
+    border-color: rgba(120, 180, 120, 0.35);
+  }
+  .badge-busy {
+    color: #c6a76a;
+    border-color: rgba(198, 167, 106, 0.35);
+  }
+  .pill {
+    @apply inline-block text-[10px] font-medium uppercase;
+    padding: 4px 9px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    border: 1px solid var(--line);
+  }
+  .pill-on {
+    color: #c6a76a;
+    border-color: rgba(198, 167, 106, 0.35);
+  }
+  .pill-off {
+    @apply text-muted;
+    border-color: var(--line);
+  }
+}
+
+/* ---------- animations ---------- */
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-fade {
+  animation: fade 0.35s ease;
+}
+
+/* divider with label */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #8b857a;
+  font-size: 12px;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}

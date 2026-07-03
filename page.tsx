@@ -1,11 +1,15 @@
-import { LandingNav } from "@/components/landing/LandingNav";
-import { Landing } from "@/components/landing/Landing";
+import { TopBar } from "@/components/ui/TopBar";
+import { Footer } from "@/components/ui/Footer";
+import { GuestFlow } from "@/components/guest/GuestFlow";
 
-export default function Home() {
+export default function StayPage() {
   return (
-    <div className="min-h-screen">
-      <LandingNav />
-      <Landing />
+    <div className="min-h-screen flex flex-col">
+      <TopBar />
+      <main className="flex-1 w-full flex justify-center px-3 sm:px-5 pt-2.5 pb-14">
+        <GuestFlow />
+      </main>
+      <Footer />
     </div>
   );
 }

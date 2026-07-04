@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Qr } from "@/components/ui/Qr";
+import { QrCode } from "@/components/ui/QrCode";
 
 interface Apt {
   id: string;
@@ -14,12 +14,6 @@ interface Apt {
   late_checkout: boolean;
   cleaning: boolean;
   ical_url: string | null;
-}
-
-function seedFrom(code: string): number {
-  let n = 0;
-  for (let i = 0; i < code.length; i++) n = (n * 31 + code.charCodeAt(i)) % 100000;
-  return n + 3;
 }
 
 export function ApartmentsManager({ agencyId }: { agencyId: string }) {
@@ -102,7 +96,7 @@ export function ApartmentsManager({ agencyId }: { agencyId: string }) {
           </div>
         )}
         {apts.map((a) => (
-          <ApartmentRow key={a.id} apt={a} origin={origin} supabase={supabase} onChange={load} seed={seedFrom(a.public_code)} />
+          <ApartmentRow key={a.id} apt={a} origin={origin} supabase={supabase} onChange={load} />
         ))}
       </div>
     </div>
@@ -114,13 +108,11 @@ function ApartmentRow({
   origin,
   supabase,
   onChange,
-  seed,
 }: {
   apt: Apt;
   origin: string;
   supabase: ReturnType<typeof createClient>;
   onChange: () => void;
-  seed: number;
 }) {
   const [ical, setIcal] = useState(apt.ical_url ?? "");
   const [saved, setSaved] = useState(false);
@@ -141,9 +133,7 @@ function ApartmentRow({
 
   return (
     <div className="card p-5 flex flex-col md:flex-row gap-5">
-      <div className="w-[76px] h-[76px] bg-white rounded-[3px] p-2 shrink-0">
-        <Qr seed={seed} className="w-full h-full" />
-      </div>
+      <QrCode value={link} apartmentName={apt.name} />
 
       <div className="flex-1 min-w-0">
         <div className="font-serif text-[18px] font-semibold">{apt.name}</div>

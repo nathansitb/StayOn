@@ -1,0 +1,176 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Qr } from "@/components/ui/Qr";
+
+interface Apt {
+  id: string;
+  public_code: string;
+  name: string;
+  location: string | null;
+  extend_price: number;
+  extra_night: boolean;
+  late_checkout: boolean;
+  cleaning: boolean;
+  ical_url: string | null;
+}
+
+function seedFrom(code: string): number {
+  let n = 0;
+  for (let i = 0; i < code.length; i++) n = (n * 31 + code.charCodeAt(i)) % 100000;
+  return n + 3;
+}
+
+export function ApartmentsManager({ agencyId }: { agencyId: string }) {
+  const supabase = createClient();
+  const [apts, setApts] = useState<Apt[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [origin, setOrigin] = useState("");
+
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [price, setPrice] = useState(150);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("apartments")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setApts((data as Apt[]) ?? []);
+    setLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    load();
+  }, [load]);
+
+  async function addApt(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name) return;
+    setBusy(true);
+    setErr(null);
+    const { error } = await supabase
+      .from("apartments")
+      .insert({ name, location, extend_price: price, agency_id: agencyId });
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setName("");
+    setLocation("");
+    setPrice(150);
+    load();
+  }
+
+  return (
+    <div className="mt-8">
+      {/* add form */}
+      <div className="card p-6">
+        <div className="font-serif text-[18px] font-semibold">Add an apartment</div>
+        <form onSubmit={addApt} className="grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr_auto] gap-3 mt-4 items-end">
+          <div className="field">
+            <label>Name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Sophisticated Apartment" required />
+          </div>
+          <div className="field">
+            <label>Short address</label>
+            <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Le Marais · Paris" />
+          </div>
+          <div className="field">
+            <label>Extra night €</label>
+            <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+          </div>
+          <button className="btn btn-primary !w-auto px-6" disabled={busy}>
+            {busy ? "…" : "Add"}
+          </button>
+        </form>
+        {err && <div className="text-[13px] text-[#e0857a] mt-3">{err}</div>}
+      </div>
+
+      {/* list */}
+      <div className="mt-6 flex flex-col gap-4">
+        {loading && <div className="text-muted text-[14px]">Loading…</div>}
+        {!loading && apts.length === 0 && (
+          <div className="card p-8 text-center text-muted text-[14px]">
+            No apartments yet. Add your first one above — it gets a unique link &amp; QR.
+          </div>
+        )}
+        {apts.map((a) => (
+          <ApartmentRow key={a.id} apt={a} origin={origin} supabase={supabase} onChange={load} seed={seedFrom(a.public_code)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ApartmentRow({
+  apt,
+  origin,
+  supabase,
+  onChange,
+  seed,
+}: {
+  apt: Apt;
+  origin: string;
+  supabase: ReturnType<typeof createClient>;
+  onChange: () => void;
+  seed: number;
+}) {
+  const [ical, setIcal] = useState(apt.ical_url ?? "");
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const link = `${origin}/a/${apt.public_code}`;
+
+  async function saveIcal() {
+    await supabase.from("apartments").update({ ical_url: ical }).eq("id", apt.id);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+    onChange();
+  }
+  function copyLink() {
+    navigator.clipboard?.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="card p-5 flex flex-col md:flex-row gap-5">
+      <div className="w-[76px] h-[76px] bg-white rounded-[3px] p-2 shrink-0">
+        <Qr seed={seed} className="w-full h-full" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="font-serif text-[18px] font-semibold">{apt.name}</div>
+        <div className="text-muted text-[13px]">{apt.location || "—"} · €{apt.extend_price}/night</div>
+
+        <div className="flex items-center gap-2 mt-3">
+          <code className="text-[12px] text-creamDim bg-panel2 border border-line rounded-[2px] px-2.5 py-1.5 truncate">
+            {link}
+          </code>
+          <button onClick={copyLink} className="px-3 py-1.5 rounded-[2px] border border-line text-[10px] uppercase tracking-[1px] text-muted hover:text-cream transition shrink-0">
+            {copied ? "Copied" : "Copy"}
+          </button>
+          <a href={link} target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-[2px] border border-line text-[10px] uppercase tracking-[1px] text-muted hover:text-cream transition shrink-0">
+            Open
+          </a>
+        </div>
+
+        <div className="flex items-end gap-2 mt-4">
+          <div className="field flex-1 !mt-0">
+            <label>iCal URL (Airbnb / Booking / Guesty)</label>
+            <input value={ical} onChange={(e) => setIcal(e.target.value)} placeholder="https://…​.ics" />
+          </div>
+          <button onClick={saveIcal} className="btn btn-dark !w-auto px-5">
+            {saved ? "Saved ✓" : "Save"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

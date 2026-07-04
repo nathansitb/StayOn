@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { ApartmentsManager } from "@/components/agency/ApartmentsManager";
 
 export const dynamic = "force-dynamic";
 
@@ -50,17 +51,7 @@ export default async function AgencyPage() {
           Signed in as {user.email} · plan: {agency?.plan ?? "free"}
         </p>
 
-        <div className="card p-8 mt-8 max-w-[560px]">
-          <div className="font-serif text-[18px] font-semibold">You&apos;re connected. ✓</div>
-          <p className="text-creamDim text-[14px] leading-[1.6] mt-3">
-            Your account and agency are live in the database. Next, we add your
-            apartments here — each one gets its own unique link &amp; QR code, plus
-            iCal / Guesty / Stripe connections.
-          </p>
-          <Link href="/dashboard" className="btn btn-ghost !w-auto px-6 mt-6 inline-flex">
-            Open the demo dashboard
-          </Link>
-        </div>
+        {profile?.agency_id && <ApartmentsManager agencyId={profile.agency_id} />}
       </main>
     </div>
   );

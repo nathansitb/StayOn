@@ -1,6 +1,13 @@
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/server";
+import { sendEmail, guestEmailHtml, agencyEmailHtml } from "@/lib/email";
+
+function typeLabel(m: Record<string, string>): string {
+  if (m.flow === "night") return `Extra night ×${m.nights || 1}`;
+  if (m.flow === "late") return `Late checkout ${m.lateTime || ""}`;
+  return `Cleaning ${m.cleaningSlot || ""}`;
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,20 +37,51 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const m = session.metadata ?? {};
+    const m = (session.metadata ?? {}) as Record<string, string>;
+    const guestEmail = session.customer_details?.email ?? null;
+    const guestName = session.customer_details?.name || guestEmail || m.guestName || "Guest";
+    const amount = Number(m.amount || 0);
     const admin = createAdminClient();
+
     await admin.from("bookings").insert({
       agency_id: m.agency_id || null,
       apartment_id: m.apartment_id || null,
-      guest_name: m.guestName || "Guest",
+      guest_name: guestName,
       flow: m.flow || "night",
       nights: Number(m.nights || 0),
       late_time: m.lateTime || null,
       cleaning_slot: m.cleaningSlot || null,
-      amount: Number(m.amount || 0),
+      amount,
       status: "confirmed",
       stripe_payment_id: (session.payment_intent as string) || session.id,
     });
+
+    // Notify the guest and the agency (best-effort).
+    const [{ data: apt }, { data: profs }] = await Promise.all([
+      admin.from("apartments").select("name").eq("id", m.apartment_id).maybeSingle(),
+      admin.from("profiles").select("email").eq("agency_id", m.agency_id).limit(1),
+    ]);
+    const aptName = apt?.name ?? "your apartment";
+    const agencyEmail = profs?.[0]?.email as string | undefined;
+    const label = typeLabel(m);
+    const detail =
+      m.flow === "night" ? "Extra night" : m.flow === "late" ? m.lateTime || "" : m.cleaningSlot || "";
+    const amountStr = "€" + amount.toLocaleString("en-US");
+
+    if (guestEmail) {
+      await sendEmail({
+        to: guestEmail,
+        subject: "Your StayOn booking is confirmed",
+        html: guestEmailHtml({ aptName, typeLabel: label, amount: amountStr, detail }),
+      });
+    }
+    if (agencyEmail) {
+      await sendEmail({
+        to: agencyEmail,
+        subject: `New booking · ${aptName}`,
+        html: agencyEmailHtml({ aptName, typeLabel: label, amount: amountStr, guest: guestName }),
+      });
+    }
   }
 
   return Response.json({ received: true });

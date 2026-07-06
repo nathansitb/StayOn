@@ -129,6 +129,7 @@ function ApartmentRow({
   const [location, setLocation] = useState(apt.location ?? "");
   const [price, setPrice] = useState(apt.extend_price);
   const [photo, setPhoto] = useState(apt.image_url ?? "");
+  const [uploading, setUploading] = useState(false);
   const [opts, setOpts] = useState({
     extra_night: apt.extra_night,
     late_checkout: apt.late_checkout,
@@ -160,6 +161,26 @@ function ApartmentRow({
     setEditing(false);
     onChange();
   }
+  async function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${apt.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("apartment-photos")
+      .upload(path, file, { upsert: true, cacheControl: "3600" });
+    if (!error) {
+      const { data } = supabase.storage.from("apartment-photos").getPublicUrl(path);
+      const url = data.publicUrl;
+      await supabase.from("apartments").update({ image_url: url }).eq("id", apt.id);
+      setPhoto(url);
+      onChange();
+    } else {
+      alert(error.message);
+    }
+    setUploading(false);
+  }
   async function del() {
     if (!window.confirm(`Delete "${apt.name}"? This can't be undone.`)) return;
     await supabase.from("apartments").delete().eq("id", apt.id);
@@ -185,9 +206,20 @@ function ApartmentRow({
               <label>Extra night €</label>
               <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
             </div>
-            <div className="field !mt-0">
-              <label>Photo URL</label>
-              <input value={photo} onChange={(e) => setPhoto(e.target.value)} placeholder="https://…" />
+            <div className="field !mt-0 sm:col-span-2">
+              <label>Photo of the apartment</label>
+              <div className="flex items-center gap-3">
+                {photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo} alt="" className="w-16 h-16 rounded-[2px] object-cover border border-line shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-[2px] bg-panel2 border border-line shrink-0" />
+                )}
+                <label className="px-4 py-2.5 rounded-[2px] border border-line text-[11px] uppercase tracking-[1px] text-muted hover:text-cream transition cursor-pointer">
+                  {uploading ? "Uploading…" : photo ? "Change photo" : "Upload from your computer"}
+                  <input type="file" accept="image/*" onChange={onPhotoChange} className="hidden" disabled={uploading} />
+                </label>
+              </div>
             </div>
             <div className="sm:col-span-2 flex gap-2">
               <button onClick={saveEdit} className="btn btn-primary !w-auto px-6">Save</button>

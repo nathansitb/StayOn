@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PhoneFrame, BackButton } from "./PhoneFrame";
 import { Photo } from "./Photo";
 import { Logo } from "@/components/ui/Logo";
@@ -40,6 +40,16 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
     if (box) box.scrollTop = 0;
   };
 
+  // Returning from Stripe Checkout → show the confirmation screen.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("paid") === "1") {
+      const f = p.get("flow");
+      if (f === "night" || f === "late" || f === "cleaning") setFlow(f);
+      setScreen("confirm");
+    }
+  }, []);
+
   const price =
     flow === "night" ? apt.extend_price * nights
     : flow === "late" ? LATE_OPTIONS[late].price
@@ -62,7 +72,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
     if (busy) return;
     setBusy(true);
     try {
-      await fetch("/api/bookings", {
+      const r = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -72,10 +82,16 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
           lateTime: flow === "late" ? LATE_OPTIONS[late].time : null,
           cleaningSlot: flow === "cleaning" ? CLEANING_SLOTS[slot] : null,
           amount: price,
+          guestName: "Guest",
         }),
       });
+      const j = await r.json();
+      if (j.url) {
+        window.location.href = j.url; // → Stripe hosted checkout
+        return;
+      }
     } catch {
-      /* ignore — still show confirmation in demo */
+      /* Stripe not configured yet — fall through to a demo confirmation */
     }
     setBusy(false);
     go("confirm");

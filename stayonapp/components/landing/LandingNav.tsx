@@ -18,6 +18,7 @@ export function LandingNav() {
           <a href="#guests" className="hover:text-cream transition">{t("navGuests")}</a>
           <a href="#hosts" className="hover:text-cream transition">{t("navHosts")}</a>
           <a href="#pricing" className="hover:text-cream transition">{t("navPricing")}</a>
+          <Link href="/stay" className="hover:text-cream transition">{t("tryDemo")}</Link>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -35,10 +36,10 @@ export function LandingNav() {
             ))}
           </div>
           <Link
-            href="/stay"
+            href="/login"
             className="hidden sm:inline-flex px-4 py-2 rounded-[2px] bg-cream text-[#111] text-[13px] font-medium"
           >
-            {t("tryDemo")}
+            {t("navLogin")}
           </Link>
         </div>
       </nav>

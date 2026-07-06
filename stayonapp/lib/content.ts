@@ -189,32 +189,22 @@ export const TESTIMONIALS: Testimonial[] = [
 
 export const PRICING = {
   free: {
-    name: bi("Free", "Gratuit"),
+    name: bi("Free for hosts & agencies", "Gratuit pour hôtes & agences"),
     price: "€0",
-    per: bi("to get started", "pour démarrer"),
+    per: bi("no monthly fee, ever", "aucun abonnement, jamais"),
     features: [
-      bi("1 apartment", "1 logement"),
-      bi("QR code + guest flow", "QR code + parcours voyageur"),
-      bi("Basic dashboard", "Dashboard basique"),
-      bi("Standard payouts", "Encaissements standard"),
+      bi("Unlimited apartments", "Logements illimités"),
+      bi("Unique QR + printable plaque per apartment", "QR unique + plaque imprimable par logement"),
+      bi("Full dashboard & real bookings", "Dashboard complet & vraies réservations"),
+      bi("iCal / PMS availability sync", "Synchro dispo iCal / PMS"),
+      bi("Secure Stripe payments", "Paiements sécurisés Stripe"),
     ],
     cta: bi("Start free", "Commencer gratuitement"),
   },
-  premium: {
-    name: bi("Premium", "Premium"),
-    price: "€19",
-    per: bi("/ month · per apartment", "/ mois · par logement"),
-    features: [
-      bi("Unlimited apartments", "Logements illimités"),
-      bi("Designer QR plaque included", "Plaque QR design incluse"),
-      bi("Full dashboard + revenue analytics", "Dashboard complet + analytics"),
-      bi("Late checkout & upsells", "Départ tardif & upsells"),
-      bi("PMS / channel-manager sync", "Sync PMS / channel-manager"),
-      bi("Priority support & customization", "Support prioritaire & personnalisation"),
-    ],
-    cta: bi("Go Premium", "Passer en Premium"),
-    highlight: bi("ROI from the first extended night", "Rentable dès la première nuit prolongée"),
-  },
+  commission: bi(
+    "StayOn only earns a small commission on each booking — nothing to set up, and nothing unless you earn.",
+    "StayOn se rémunère uniquement via une petite commission sur chaque réservation — rien à l'installation, rien tant que vous ne gagnez pas."
+  ),
 };
 
 export function pick(b: Bi, lang: Lang) {

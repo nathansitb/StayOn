@@ -26,7 +26,7 @@ export function HostOnboarding() {
     price: 160,
     extra: true,
     late: true,
-    plan: "premium" as Plan,
+    plan: "free" as Plan,
   });
 
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
@@ -163,24 +163,12 @@ export function HostOnboarding() {
 
       {step === 4 && (
         <Panel title={t("choosePlanTitle")} sub="">
-          <div className="grid grid-cols-2 gap-3">
-            {(["free", "premium"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => set("plan", p)}
-                className={`rounded-2xl border p-5 text-left transition ${
-                  form.plan === p ? "border-gold bg-[rgba(198,167,106,.08)]" : "border-line bg-panel2"
-                }`}
-              >
-                <div className="font-serif text-[19px] font-semibold">
-                  {p === "free" ? "Free" : "Premium"}
-                </div>
-                <div className="text-[13px] text-muted mt-1">
-                  {p === "free" ? "€0" : "€19"}
-                  <span className="block text-[11px]">{p === "free" ? t("stepPlan") : `${t("perNight").replace("night", "mo")} · per apt`}</span>
-                </div>
-              </button>
-            ))}
+          <div className="rounded-[4px] border border-gold bg-[rgba(198,167,106,.08)] p-6 text-center">
+            <div className="font-serif text-[32px] font-semibold text-gold">Free</div>
+            <p className="text-[13px] text-creamDim mt-3 leading-[1.6]">
+              No monthly fee. StayOn only earns a small commission on each booking —
+              nothing to set up, and nothing unless you earn.
+            </p>
           </div>
         </Panel>
       )}

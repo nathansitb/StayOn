@@ -82,7 +82,7 @@ export function Landing() {
               <Link href="/stay" className="btn btn-gold !w-auto px-7">
                 {t("ctaGuestDemo")} <span className="text-[18px]">↗</span>
               </Link>
-              <Link href="/host" className="btn btn-ghost !w-auto px-7">
+              <Link href="/login" className="btn btn-ghost !w-auto px-7">
                 {t("ctaHostSpace")}
               </Link>
             </div>
@@ -196,7 +196,7 @@ export function Landing() {
           <h2 className="font-serif text-[34px] font-semibold mt-3">{t("pricingTitle")}</h2>
           <p className="sub max-w-[520px] mx-auto">{t("pricingSub")}</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12 max-w-[820px] mx-auto">
+        <div className="mt-12 max-w-[460px] mx-auto">
           {/* Free */}
           <div className="card p-8">
             <div className="font-serif text-[22px] font-semibold">
@@ -213,45 +213,14 @@ export function Landing() {
                 </li>
               ))}
             </ul>
-            <Link href="/host" className="btn btn-ghost mt-8">
+            <Link href="/login" className="btn btn-gold mt-8">
               {pick(PRICING.free.cta, lang)}
             </Link>
           </div>
 
-          {/* Premium */}
-          <div
-            className="card p-8 relative"
-            style={{
-              borderColor: "rgba(198,167,106,.35)",
-              background: "#121110",
-            }}
-          >
-            <span className="absolute top-6 right-6 text-[10px] tracking-[1.5px] uppercase text-gold border border-gold/40 px-2.5 py-1">
-              {t("mostPopular")}
-            </span>
-            <div className="font-serif text-[22px] font-semibold">
-              {pick(PRICING.premium.name, lang)}
-            </div>
-            <div className="flex items-baseline gap-2 mt-4">
-              <span className="font-serif text-[44px] font-semibold text-gold">
-                {PRICING.premium.price}
-              </span>
-              <span className="text-muted text-[13px]">{pick(PRICING.premium.per, lang)}</span>
-            </div>
-            <ul className="mt-6 space-y-3">
-              {PRICING.premium.features.map((f, i) => (
-                <li key={i} className="flex gap-2.5 text-[14px] text-cream">
-                  <span className="text-gold">✓</span> {pick(f, lang)}
-                </li>
-              ))}
-            </ul>
-            <div className="text-[12.5px] text-gold mt-5 flex items-center gap-1.5">
-              ✦ {pick(PRICING.premium.highlight, lang)}
-            </div>
-            <Link href="/host" className="btn btn-gold mt-6">
-              {pick(PRICING.premium.cta, lang)}
-            </Link>
-          </div>
+          <p className="text-center text-[13px] text-creamDim mt-6 leading-[1.6]">
+            {pick(PRICING.commission, lang)}
+          </p>
         </div>
       </Section>
 
@@ -265,7 +234,7 @@ export function Landing() {
           <h2 className="font-serif text-[36px] font-semibold mt-5">{t("finalCtaTitle")}</h2>
           <p className="text-creamDim text-[16px] mt-4">{t("finalCtaSub")}</p>
           <div className="flex flex-wrap gap-3 justify-center mt-8">
-            <Link href="/host" className="btn btn-gold !w-auto px-8">
+            <Link href="/login" className="btn btn-gold !w-auto px-8">
               {pick(PRICING.free.cta, lang)}
             </Link>
             <Link href="/stay" className="btn btn-ghost !w-auto px-8">

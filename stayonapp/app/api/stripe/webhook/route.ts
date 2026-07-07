@@ -41,9 +41,20 @@ export async function POST(req: Request) {
     const guestEmail = session.customer_details?.email ?? null;
     const guestName = session.customer_details?.name || guestEmail || m.guestName || "Guest";
     const amount = Number(m.amount || 0);
+    const paymentId = (session.payment_intent as string) || session.id;
     const admin = createAdminClient();
 
-    const { data: booking } = await admin
+    // Idempotency: Stripe may deliver the same event more than once.
+    const { data: existing } = await admin
+      .from("bookings")
+      .select("id")
+      .eq("stripe_payment_id", paymentId)
+      .maybeSingle();
+    if (existing) {
+      return Response.json({ received: true, duplicate: true });
+    }
+
+    const { data: booking, error: insertError } = await admin
       .from("bookings")
       .insert({
         agency_id: m.agency_id || null,
@@ -55,10 +66,17 @@ export async function POST(req: Request) {
         cleaning_slot: m.cleaningSlot || null,
         amount,
         status: "confirmed",
-        stripe_payment_id: (session.payment_intent as string) || session.id,
+        stripe_payment_id: paymentId,
       })
       .select("id")
       .single();
+
+    // Surface DB failures so Stripe retries and we can see them in the dashboard.
+    if (insertError) {
+      return new Response(`Booking insert failed: ${insertError.message}`, {
+        status: 500,
+      });
+    }
 
     const reference =
       "SO-" + (booking?.id ? booking.id.slice(0, 8) : session.id.slice(-8)).toUpperCase();

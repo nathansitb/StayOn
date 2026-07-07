@@ -250,7 +250,10 @@ export function Landing() {
           <div className="text-cream pt-1.5">
             <Logo size={18} />
           </div>
-          <div className="text-[12.5px] text-muted">{t("footer")}</div>
+          <div className="flex items-center gap-5 text-[12.5px] text-muted">
+            <Link href="/privacy" className="hover:text-cream transition">Privacy</Link>
+            <Link href="/terms" className="hover:text-cream transition">Terms</Link>
+          </div>
         </Section>
       </footer>
     </div>

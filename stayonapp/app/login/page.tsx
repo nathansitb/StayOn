@@ -29,7 +29,10 @@ export default function LoginPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { company } },
+          options: {
+            data: { company },
+            emailRedirectTo: `${window.location.origin}/login`,
+          },
         });
         if (error) throw error;
         if (!data.session) {
@@ -121,6 +124,11 @@ export default function LoginPage() {
       <p className="text-muted text-[12px] mt-6 text-center max-w-[360px]">
         Agencies sign up here to manage their apartments. Guests don&apos;t need an
         account — they just scan the QR code.
+      </p>
+      <p className="text-muted text-[11px] mt-3 text-center max-w-[360px]">
+        By continuing you agree to our{" "}
+        <Link href="/terms" className="text-gold hover:text-cream transition">Terms</Link> and{" "}
+        <Link href="/privacy" className="text-gold hover:text-cream transition">Privacy Policy</Link>.
       </p>
     </div>
   );

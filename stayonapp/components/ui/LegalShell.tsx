@@ -37,6 +37,7 @@ export function LegalShell({
           <div className="flex gap-5">
             <Link href="/privacy" className="hover:text-cream transition">Privacy</Link>
             <Link href="/terms" className="hover:text-cream transition">Terms</Link>
+            <Link href="/mentions-legales" className="hover:text-cream transition">Mentions légales</Link>
           </div>
         </div>
       </footer>

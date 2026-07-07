@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { LangProvider } from "@/lib/store";
 import { AppProvider } from "@/lib/appStore";
+import { CookieBanner } from "@/components/ui/CookieBanner";
 
 export const metadata: Metadata = {
   title: "StayOn — Extend the moment. In style.",
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className="font-sans">
         <LangProvider>
           <AppProvider>{children}</AppProvider>
+          <CookieBanner />
         </LangProvider>
       </body>
     </html>

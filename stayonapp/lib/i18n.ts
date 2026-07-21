@@ -97,9 +97,9 @@ export const STRINGS = {
     navLogin: "Log in",
     tryDemo: "Try the demo",
     heroBadge: "Beta · Live demo",
-    heroTitle: "The extra night that books itself.",
+    heroTitle: "Extra nights, late checkouts, cleanings — sold on autopilot.",
     heroSub:
-      "Guests scan a QR code in the room and extend their stay or request a late checkout in seconds. You earn more — with zero extra work.",
+      "Guests scan a QR code in the room and, in seconds, extend their stay, request a late checkout or book a cleaning. You earn more — with zero extra work.",
     ctaGuestDemo: "Try the guest experience",
     ctaHostSpace: "I’m a host / agency",
     ctaSeeDashboard: "See the dashboard",
@@ -323,9 +323,9 @@ export const STRINGS = {
     navLogin: "Connexion",
     tryDemo: "Tester la démo",
     heroBadge: "Bêta · Démo live",
-    heroTitle: "La nuit en plus qui se réserve toute seule.",
+    heroTitle: "Nuits en plus, départs tardifs, ménages — vendus tout seuls.",
     heroSub:
-      "Le voyageur scanne un QR code dans la chambre et prolonge son séjour ou demande un départ tardif en quelques secondes. Vous gagnez plus — sans aucun effort.",
+      "Le voyageur scanne un QR code dans la chambre et, en quelques secondes, prolonge son séjour, demande un départ tardif ou réserve un ménage. Vous gagnez plus — sans aucun effort.",
     ctaGuestDemo: "Tester le parcours voyageur",
     ctaHostSpace: "Je suis hôte / agence",
     ctaSeeDashboard: "Voir le dashboard",

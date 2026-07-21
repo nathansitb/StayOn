@@ -199,6 +199,11 @@ export function QrCode({ value, apartmentName }: { value: string; apartmentName:
     ctx.font = '500 36px "Cormorant Garamond", Georgia, serif';
     ctx.fillText("stay one more night", cx, capY2);
 
+    // ---- secondary services line ----
+    ctx.fillStyle = "#B9B2A4";
+    ctx.font = 'italic 500 26px "Cormorant Garamond", Georgia, serif';
+    ctx.fillText("— or a late checkout, or a cleaning —", cx, capY2 + 44);
+
     const url = c.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;

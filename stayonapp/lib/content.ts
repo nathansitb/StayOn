@@ -25,8 +25,8 @@ export const STEPS: { n: string; title: Bi; text: Bi }[] = [
     n: "02",
     title: bi("Choose", "Choisir"),
     text: bi(
-      "Extend one or more nights, or pick a late checkout time. Prices shown upfront.",
-      "Prolonger d’une ou plusieurs nuits, ou choisir un départ tardif. Prix affichés d’emblée."
+      "Extend a night, pick a late checkout, or book a cleaning. Prices shown upfront.",
+      "Prolonger d’une nuit, choisir un départ tardif, ou réserver un ménage. Prix affichés d’emblée."
     ),
   },
   {

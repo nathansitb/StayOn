@@ -7,8 +7,22 @@ export function AgencyConnections() {
   const [cid, setCid] = useState("");
   const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
-  const [res, setRes] = useState<{ total: number; listings: { id: string; title: string }[] } | null>(null);
+  const [res, setRes] = useState<{ total: number; listings: { id: string; title: string }[]; stored?: boolean } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const webhookUrl =
+    typeof window !== "undefined" ? `${window.location.origin}/api/guesty/webhook` : "/api/guesty/webhook";
+
+  async function copyWebhook() {
+    try {
+      await navigator.clipboard.writeText(webhookUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  }
 
   async function connect() {
     setBusy(true);
@@ -89,7 +103,9 @@ export function AgencyConnections() {
 
         {res && (
           <div className="mt-4">
-            <span className="badge badge-free">Connected · {res.total} listings</span>
+            <span className="badge badge-free">
+              Connected · {res.total} listings{res.stored ? " · saved" : ""}
+            </span>
             <ul className="mt-3 space-y-1.5">
               {res.listings.slice(0, 8).map((l) => (
                 <li key={l.id} className="text-[13px] text-creamDim flex items-center gap-2">
@@ -100,6 +116,23 @@ export function AgencyConnections() {
           </div>
         )}
         {err && <div className="mt-4 text-[13px] text-[#e0857a]">Connection failed — {err}</div>}
+
+        {/* Webhook URL to paste into Guesty */}
+        <div className="mt-6 pt-5 border-t border-line">
+          <div className="text-[13px] font-medium">Real-time sync (webhook)</div>
+          <p className="text-[12.5px] text-muted mt-1 leading-[1.5]">
+            In Guesty (Integrations → Webhooks), add this URL so availability stays
+            in sync and a night booked elsewhere is never sold twice:
+          </p>
+          <div className="flex items-center gap-2 mt-3">
+            <code className="flex-1 text-[12px] bg-panel2 rounded-[2px] px-3 py-2 overflow-x-auto whitespace-nowrap">
+              {webhookUrl}
+            </code>
+            <button onClick={copyWebhook} className="btn btn-ghost !w-auto px-4 text-[12px]">
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

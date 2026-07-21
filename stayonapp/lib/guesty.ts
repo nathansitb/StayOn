@@ -119,3 +119,40 @@ export async function guestyNightAvailable(
   const day = cal.find((d) => d.date === night) ?? cal[0];
   return day ? day.available : false;
 }
+
+async function guestyPut<T>(token: string, path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Guesty PUT ${path} failed (${res.status}) ${t.slice(0, 140)}`);
+  }
+  return (await res.json().catch(() => ({}))) as T;
+}
+
+/**
+ * Block a date range on a Guesty listing so it can no longer be sold on any
+ * channel (write-back after a StayOn extension is paid). Marks the days
+ * "unavailable" on the availability calendar. Dates are YYYY-MM-DD, inclusive.
+ */
+export async function blockGuestyDates(
+  token: string,
+  listingId: string,
+  startDate: string,
+  endDate: string,
+  note = "Booked via StayOn"
+): Promise<void> {
+  await guestyPut(
+    token,
+    `/v1/availability-pricing/api/calendar/listings/${listingId}`,
+    { startDate, endDate, status: "unavailable", note }
+  );
+}

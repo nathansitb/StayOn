@@ -2,6 +2,12 @@ import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendEmail, guestEmailHtml, agencyEmailHtml } from "@/lib/email";
+import { blockNightsForApartment } from "@/lib/guesty-store";
+
+/** The booked night (extension). Today the guest flow books the next night. */
+function tomorrowISO(): string {
+  return new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+}
 
 function typeLabel(m: Record<string, string>): string {
   if (m.flow === "night") return `Extra night ×${m.nights || 1}`;
@@ -80,6 +86,17 @@ export async function POST(req: Request) {
 
     const reference =
       "SO-" + (booking?.id ? booking.id.slice(0, 8) : session.id.slice(-8)).toUpperCase();
+
+    // Write-back: for an extra-night booking, block the night on Guesty so it
+    // can't be re-sold on any channel. Best-effort — never blocks the response.
+    if (m.flow === "night" && m.apartment_id && m.agency_id) {
+      await blockNightsForApartment(
+        m.apartment_id,
+        m.agency_id,
+        tomorrowISO(),
+        Number(m.nights || 1)
+      ).catch(() => {});
+    }
 
     // Notify the guest and the agency (best-effort).
     const [{ data: apt }, { data: profs }] = await Promise.all([

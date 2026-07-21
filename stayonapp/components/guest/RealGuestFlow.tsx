@@ -53,6 +53,9 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [cart, setCart] = useState<Service[]>([]);
   const [busy, setBusy] = useState(false);
+  const [nearby, setNearby] = useState<
+    Array<{ public_code: string; name: string; location: string | null; km: number }>
+  >([]);
 
   // Draft config for each service screen
   const [nightDate, setNightDate] = useState(tomorrowISO());
@@ -93,6 +96,16 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
         );
         const j = await r.json();
         if (!(r.ok && j.available)) {
+          // Fetch the nearest available apartments to suggest instead.
+          try {
+            const nr = await fetch(
+              `/api/nearby?code=${encodeURIComponent(apt.public_code)}&night=${nightDate}`
+            );
+            const nj = await nr.json();
+            setNearby(Array.isArray(nj.results) ? nj.results : []);
+          } catch {
+            setNearby([]);
+          }
           go("unavailable");
           return;
         }
@@ -426,7 +439,33 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
         <div className="px-[22px] pt-[70px]">
           <div className="eyebrow" style={{ color: "#c98b7a" }}>StayOn</div>
           <h1 className="h1">That night is not available.</h1>
-          <p className="sub">{fmtDate(nightDate)} is already booked. Try another date, or add a late checkout or a cleaning instead.</p>
+          <p className="sub">{fmtDate(nightDate)} is already booked here.</p>
+
+          {nearby.length > 0 && (
+            <div className="mt-6">
+              <div className="text-[12.5px] text-muted mb-2.5">
+                Available nearby that night:
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {nearby.map((n) => (
+                  <a
+                    key={n.public_code}
+                    href={`/a/${n.public_code}`}
+                    className="card px-[16px] py-[14px] flex items-center justify-between hover:border-gold transition"
+                  >
+                    <span className="min-w-0">
+                      <span className="text-[14.5px] font-medium block truncate">{n.name}</span>
+                      <span className="block text-[12px] text-muted mt-0.5 truncate">
+                        {n.location ? `${n.location} · ` : ""}{n.km} km away
+                      </span>
+                    </span>
+                    <span className="text-gold text-[13px] shrink-0 ml-2">View →</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button className="btn btn-primary mt-6" onClick={() => go("stay")}>Choose another date</button>
           <button className="btn btn-ghost mt-2.5" onClick={() => go("welcome")}>Back</button>
         </div>

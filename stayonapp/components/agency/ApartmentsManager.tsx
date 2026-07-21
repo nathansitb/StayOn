@@ -15,6 +15,20 @@ interface Apt {
   late_checkout: boolean;
   cleaning: boolean;
   ical_url: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** Geocode an address to coordinates (best-effort). */
+async function geocode(q: string): Promise<{ lat: number; lng: number } | null> {
+  if (!q || q.trim().length < 3) return null;
+  try {
+    const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+    const j = await r.json();
+    return j.found ? { lat: j.lat, lng: j.lng } : null;
+  } catch {
+    return null;
+  }
 }
 
 export function ApartmentsManager({ agencyId }: { agencyId: string }) {
@@ -49,9 +63,10 @@ export function ApartmentsManager({ agencyId }: { agencyId: string }) {
     if (!name) return;
     setBusy(true);
     setErr(null);
+    const coords = await geocode(location);
     const { error } = await supabase
       .from("apartments")
-      .insert({ name, location, extend_price: price, agency_id: agencyId });
+      .insert({ name, location, extend_price: price, agency_id: agencyId, lat: coords?.lat ?? null, lng: coords?.lng ?? null });
     setBusy(false);
     if (error) {
       setErr(error.message);
@@ -130,6 +145,9 @@ function ApartmentRow({
   const [price, setPrice] = useState(apt.extend_price);
   const [photo, setPhoto] = useState(apt.image_url ?? "");
   const [uploading, setUploading] = useState(false);
+  const [lat, setLat] = useState<number | null>(apt.lat);
+  const [lng, setLng] = useState<number | null>(apt.lng);
+  const [locating, setLocating] = useState(false);
   const [opts, setOpts] = useState({
     extra_night: apt.extra_night,
     late_checkout: apt.late_checkout,
@@ -153,10 +171,34 @@ function ApartmentRow({
     setOpts((o) => ({ ...o, [key]: v }));
     await supabase.from("apartments").update({ [key]: v }).eq("id", apt.id);
   }
+  async function locate() {
+    if (!location) return;
+    setLocating(true);
+    const c = await geocode(location);
+    setLocating(false);
+    if (c) {
+      setLat(c.lat);
+      setLng(c.lng);
+    } else {
+      alert("Address not found — try a more specific address (street, city).");
+    }
+  }
   async function saveEdit() {
+    // Auto-locate if the address is set but we still have no coordinates.
+    let la = lat;
+    let ln = lng;
+    if (location && (la == null || ln == null)) {
+      const c = await geocode(location);
+      if (c) {
+        la = c.lat;
+        ln = c.lng;
+        setLat(la);
+        setLng(ln);
+      }
+    }
     await supabase
       .from("apartments")
-      .update({ name, location, extend_price: price, image_url: photo || null })
+      .update({ name, location, extend_price: price, image_url: photo || null, lat: la, lng: ln })
       .eq("id", apt.id);
     setEditing(false);
     onChange();
@@ -199,8 +241,25 @@ function ApartmentRow({
               <input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="field !mt-0">
-              <label>Short address</label>
-              <input value={location} onChange={(e) => setLocation(e.target.value)} />
+              <label>Address (for nearby suggestions)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  className="flex-1"
+                  value={location}
+                  onChange={(e) => { setLocation(e.target.value); setLat(null); setLng(null); }}
+                  placeholder="12 Av. des Champs-Élysées, Paris"
+                />
+                <button
+                  type="button"
+                  onClick={locate}
+                  className="px-3 py-2.5 rounded-[2px] border border-line text-[10px] uppercase tracking-[1px] text-muted hover:text-cream transition shrink-0"
+                >
+                  {locating ? "…" : "📍 Locate"}
+                </button>
+              </div>
+              <div className="text-[11px] mt-1" style={{ color: lat != null ? "#8fae86" : "#8a857c" }}>
+                {lat != null && lng != null ? `Located ✓ (${lat.toFixed(3)}, ${lng.toFixed(3)})` : "Not located — will locate on save"}
+              </div>
             </div>
             <div className="field !mt-0">
               <label>Extra night €</label>

@@ -9,10 +9,52 @@ function tomorrowISO(): string {
   return new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
 }
 
-function typeLabel(m: Record<string, string>): string {
+interface WSvc {
+  flow: "night" | "late" | "cleaning";
+  nights: number;
+  lateTime: string | null;
+  cleaningSlot: string | null;
+  amount: number;
+  label: string;
+}
+
+function legacyLabel(m: Record<string, string>): string {
   if (m.flow === "night") return `Extra night ×${m.nights || 1}`;
   if (m.flow === "late") return `Late checkout ${m.lateTime || ""}`;
   return `Cleaning ${m.cleaningSlot || ""}`;
+}
+
+/** Read the selected services from metadata (new multi-service or legacy single). */
+function parseServices(m: Record<string, string>): WSvc[] {
+  if (m.services) {
+    try {
+      const arr = JSON.parse(m.services) as Array<{
+        f?: string; n?: number; lt?: string; cs?: string; a?: number; l?: string;
+      }>;
+      if (Array.isArray(arr) && arr.length) {
+        return arr.map((x) => ({
+          flow: x.f === "late" || x.f === "cleaning" ? x.f : "night",
+          nights: Number(x.n || 0),
+          lateTime: x.lt || null,
+          cleaningSlot: x.cs || null,
+          amount: Number(x.a || 0),
+          label: x.l || "",
+        }));
+      }
+    } catch {
+      /* fall back to legacy */
+    }
+  }
+  return [
+    {
+      flow: m.flow === "late" || m.flow === "cleaning" ? m.flow : "night",
+      nights: Number(m.nights || 0),
+      lateTime: m.lateTime || null,
+      cleaningSlot: m.cleaningSlot || null,
+      amount: Number(m.amount || 0),
+      label: legacyLabel(m),
+    },
+  ];
 }
 
 export const runtime = "nodejs";
@@ -46,57 +88,65 @@ export async function POST(req: Request) {
     const m = (session.metadata ?? {}) as Record<string, string>;
     const guestEmail = session.customer_details?.email ?? null;
     const guestName = session.customer_details?.name || guestEmail || m.guestName || "Guest";
-    const amount = Number(m.amount || 0);
+    const totalAmount = Number(m.amount || 0);
     const paymentId = (session.payment_intent as string) || session.id;
+    const checkIn = m.checkIn || tomorrowISO();
     const admin = createAdminClient();
 
-    // Idempotency: Stripe may deliver the same event more than once.
+    // Idempotency: Stripe may deliver the same event more than once. Multi-service
+    // payments store ids as `${paymentId}#i`, so match on the prefix.
     const { data: existing } = await admin
       .from("bookings")
       .select("id")
-      .eq("stripe_payment_id", paymentId)
+      .like("stripe_payment_id", `${paymentId}%`)
       .maybeSingle();
     if (existing) {
       return Response.json({ received: true, duplicate: true });
     }
 
-    const { data: booking, error: insertError } = await admin
-      .from("bookings")
-      .insert({
-        agency_id: m.agency_id || null,
-        apartment_id: m.apartment_id || null,
-        guest_name: guestName,
-        flow: m.flow || "night",
-        nights: Number(m.nights || 0),
-        late_time: m.lateTime || null,
-        cleaning_slot: m.cleaningSlot || null,
-        amount,
-        status: "confirmed",
-        stripe_payment_id: paymentId,
-      })
-      .select("id")
-      .single();
+    const services = parseServices(m);
 
-    // Surface DB failures so Stripe retries and we can see them in the dashboard.
-    if (insertError) {
-      return new Response(`Booking insert failed: ${insertError.message}`, {
-        status: 500,
-      });
+    // One booking row per selected service.
+    let firstId: string | null = null;
+    for (let i = 0; i < services.length; i++) {
+      const s = services[i];
+      const payId = services.length > 1 ? `${paymentId}#${i}` : paymentId;
+      const { data: booking, error: insertError } = await admin
+        .from("bookings")
+        .insert({
+          agency_id: m.agency_id || null,
+          apartment_id: m.apartment_id || null,
+          guest_name: guestName,
+          flow: s.flow,
+          nights: s.nights,
+          late_time: s.lateTime,
+          cleaning_slot: s.cleaningSlot,
+          amount: s.amount,
+          status: "confirmed",
+          stripe_payment_id: payId,
+        })
+        .select("id")
+        .single();
+
+      // Surface DB failures so Stripe retries and we can see them in the dashboard.
+      if (insertError) {
+        return new Response(`Booking insert failed: ${insertError.message}`, { status: 500 });
+      }
+      if (!firstId) firstId = booking?.id ?? null;
+
+      // Write-back: block the booked night(s) on Guesty. Best-effort.
+      if (s.flow === "night" && m.apartment_id && m.agency_id) {
+        await blockNightsForApartment(
+          m.apartment_id,
+          m.agency_id,
+          checkIn,
+          s.nights || 1
+        ).catch(() => {});
+      }
     }
 
     const reference =
-      "SO-" + (booking?.id ? booking.id.slice(0, 8) : session.id.slice(-8)).toUpperCase();
-
-    // Write-back: for an extra-night booking, block the night on Guesty so it
-    // can't be re-sold on any channel. Best-effort — never blocks the response.
-    if (m.flow === "night" && m.apartment_id && m.agency_id) {
-      await blockNightsForApartment(
-        m.apartment_id,
-        m.agency_id,
-        tomorrowISO(),
-        Number(m.nights || 1)
-      ).catch(() => {});
-    }
+      "SO-" + (firstId ? firstId.slice(0, 8) : session.id.slice(-8)).toUpperCase();
 
     // Notify the guest and the agency (best-effort).
     const [{ data: apt }, { data: profs }] = await Promise.all([
@@ -106,15 +156,10 @@ export async function POST(req: Request) {
     const aptName = apt?.name ?? "your apartment";
     const address = apt?.location ?? "";
     const agencyEmail = profs?.[0]?.email as string | undefined;
-    const label = typeLabel(m);
-    const nightsN = Number(m.nights || 1);
-    const when =
-      m.flow === "night"
-        ? `${nightsN} night${nightsN > 1 ? "s" : ""}`
-        : m.flow === "late"
-          ? `Checkout at ${m.lateTime || ""}`
-          : m.cleaningSlot || "";
-    const amountStr = "€" + amount.toLocaleString("en-US");
+    const label = services.map((s) => s.label).join("  +  ");
+    const hasNight = services.some((s) => s.flow === "night");
+    const when = hasNight ? `From ${checkIn}` : services.map((s) => s.label).join(", ");
+    const amountStr = "€" + totalAmount.toLocaleString("en-US");
 
     if (guestEmail) {
       await sendEmail({

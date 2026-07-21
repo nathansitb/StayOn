@@ -53,7 +53,7 @@ export const GUEST_BENEFITS: Feature[] = [
     icon: "◷",
     title: bi("Effortless", "Simplicité"),
     points: [
-      bi("Extend in a few seconds via a QR code.", "Prolonger en quelques secondes via un QR code."),
+      bi("Extend a night, get a late checkout or a cleaning — in seconds, via a QR code.", "Prolonger, obtenir un départ tardif ou un ménage — en quelques secondes, via un QR code."),
       bi("Intuitive interface, no app to download.", "Interface intuitive, aucune app à télécharger."),
       bi("No paperwork, no complex exchanges.", "Aucune démarche administrative ni échange complexe."),
     ],
@@ -62,16 +62,16 @@ export const GUEST_BENEFITS: Feature[] = [
     icon: "⇌",
     title: bi("Maximum flexibility", "Flexibilité maximale"),
     points: [
-      bi("Decide to stay at the last minute.", "Décider de prolonger à la dernière minute."),
+      bi("Add a night, a late checkout or a cleaning at the last minute.", "Ajouter une nuit, un départ tardif ou un ménage à la dernière minute."),
       bi("A few hours or several days, as you wish.", "Quelques heures ou plusieurs jours selon vos besoins."),
       bi("No scramble to find another place.", "Plus besoin de chercher un autre logement en urgence."),
     ],
   },
   {
     icon: "☾",
-    title: bi("Comfort & continuity", "Confort et continuité"),
+    title: bi("Comfort on demand", "Confort à la demande"),
     points: [
-      bi("Stay in the same place, no repacking.", "Rester dans le même logement sans refaire ses bagages."),
+      bi("Stay longer, leave later, or come back to a fresh home.", "Rester plus longtemps, partir plus tard, ou retrouver un logement impeccable."),
       bi("No stress, no pointless move.", "Pas de stress, pas de déménagement inutile."),
       bi("Enjoy it fully until the last moment.", "Profiter pleinement jusqu’au dernier moment."),
     ],
@@ -80,7 +80,7 @@ export const GUEST_BENEFITS: Feature[] = [
     icon: "€",
     title: bi("Clear, fair pricing", "Tarification claire"),
     points: [
-      bi("Prices shown right at extension.", "Prix affichés directement lors de la prolongation."),
+      bi("Each service priced upfront, right in the app.", "Chaque service au prix affiché, directement dans l’app."),
       bi("No hidden fees or extra commission.", "Pas de frais cachés ni de commissions."),
       bi("Secure online payment.", "Paiement sécurisé en ligne."),
     ],
@@ -102,9 +102,9 @@ export const HOST_BENEFITS: Feature[] = [
     icon: "↗",
     title: bi("Extra revenue, no effort", "Revenu supplémentaire sans effort"),
     points: [
-      bi("Extra nights booked straight from the room.", "Nuits supplémentaires réservées directement depuis le logement."),
+      bi("Extra nights, late checkouts and cleanings, booked straight from the room.", "Nuits en plus, départs tardifs et ménages, réservés directement depuis le logement."),
       bi("100% collected by the host or agency.", "100 % du montant encaissé par l’hôte ou l’agence."),
-      bi("Occupancy optimised, zero extra management.", "Taux d’occupation optimisé sans gestion supplémentaire."),
+      bi("Three ways to earn, zero extra management.", "Trois sources de revenu, sans gestion supplémentaire."),
     ],
   },
   {
@@ -138,7 +138,7 @@ export const HOST_BENEFITS: Feature[] = [
     icon: "⚙",
     title: bi("Full control", "Contrôle total"),
     points: [
-      bi("Set price, rules and times freely.", "Définir librement tarif, règles et horaires."),
+      bi("Set the price of each service — night, late checkout, cleaning.", "Fixer le prix de chaque service — nuit, départ tardif, ménage."),
       bi("Instant activation / deactivation.", "Activation/désactivation instantanée."),
       bi("Simple for staff to run.", "Gestion simplifiée pour le personnel."),
     ],
@@ -147,7 +147,7 @@ export const HOST_BENEFITS: Feature[] = [
     icon: "⛓",
     title: bi("OTA independence", "Indépendance vis-à-vis des OTA"),
     points: [
-      bi("Extend without Airbnb, Booking, etc.", "Prolonger sans passer par Airbnb, Booking, etc."),
+      bi("Sell extras without going through Airbnb, Booking, etc.", "Vendre vos extras sans passer par Airbnb, Booking, etc."),
       bi("Fewer commissions to pay out.", "Réduction des commissions à reverser."),
       bi("A direct relationship with the guest.", "Relation directe avec le client."),
     ],

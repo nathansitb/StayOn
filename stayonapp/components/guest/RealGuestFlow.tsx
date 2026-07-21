@@ -107,7 +107,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
       amount: apt.extend_price * nights,
       label: `Extra night × ${nights}`,
     });
-    go("welcome");
+    go("summary");
   }
   function addLate() {
     upsert({
@@ -117,7 +117,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
       amount: LATE_OPTIONS[late].price,
       label: `Late checkout · ${LATE_OPTIONS[late].time}`,
     });
-    go("welcome");
+    go("summary");
   }
   function addClean() {
     upsert({
@@ -127,7 +127,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
       amount: CLEANING_SERVICES[svc].price,
       label: `${SVC_LABEL[CLEANING_SERVICES[svc].key]} · ${CLEANING_SLOTS[slot]}`,
     });
-    go("welcome");
+    go("summary");
   }
 
   async function pay() {
@@ -185,23 +185,10 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
       </div>
     );
   } else if (screen === "welcome") {
-    const ServiceButton = ({ flow, label }: { flow: Flow; label: string }) => {
-      const chosen = inCart(flow);
-      const target: Screen = flow === "night" ? "stay" : flow;
-      return (
-        <button
-          className={chosen ? "btn btn-ghost !justify-between" : "btn btn-ghost"}
-          style={chosen ? { borderColor: "#c6a76a", color: "#F3EDE1" } : undefined}
-          onClick={() => go(target)}
-        >
-          <span>{chosen ? chosen.label : label}</span>
-          {chosen && <span className="text-gold text-[13px]">✓ edit</span>}
-        </button>
-      );
-    };
+    // Simple entry chooser (also reached from "Add another service").
     body = (
-      <div className="min-h-full flex flex-col px-[26px] pt-16 pb-[26px] animate-fade">
-        <div className="flex justify-center pt-6 text-cream">
+      <div className="min-h-full flex flex-col px-[26px] pt-16 pb-[30px] animate-fade">
+        <div className="flex justify-center pt-8 text-cream">
           <Logo size={40} tagline />
         </div>
         <div className="text-center mt-6">
@@ -209,25 +196,22 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
           <div className="text-muted text-[12.5px] mt-1">{apt.location || ""}</div>
         </div>
         <p className="text-creamDim text-[14.5px] leading-[1.6] text-center mt-6 mb-6">
-          Would you like to extend your stay or request a service? You can add
-          several.
+          Would you like to extend your stay or request a service?
         </p>
         <div className="flex flex-col gap-3 mt-auto">
-          {apt.extra_night && <ServiceButton flow="night" label="Stay one more night" />}
-          {apt.late_checkout && <ServiceButton flow="late" label="Request late checkout" />}
-          {apt.cleaning && <ServiceButton flow="cleaning" label="Book a cleaning" />}
-
+          {apt.extra_night && (
+            <button className="btn btn-primary" onClick={() => go("stay")}>Stay one more night</button>
+          )}
+          {apt.late_checkout && (
+            <button className="btn btn-ghost" onClick={() => go("late")}>Request late checkout</button>
+          )}
+          {apt.cleaning && (
+            <button className="btn btn-ghost" onClick={() => go("cleaning")}>Book a cleaning</button>
+          )}
           {cart.length > 0 && (
-            <div className="mt-2 pt-4 border-t border-line">
-              <div className="flex items-baseline justify-between">
-                <span className="text-muted text-[12.5px]">
-                  {cart.length} service{cart.length > 1 ? "s" : ""} · {eur(total)}
-                </span>
-              </div>
-              <button className="btn btn-primary mt-3" onClick={() => go("summary")}>
-                Continue · {eur(total)}
-              </button>
-            </div>
+            <button className="btn btn-ghost mt-1" style={{ borderColor: "#c6a76a", color: "#F3EDE1" }} onClick={() => go("summary")}>
+              Review booking · {eur(total)}
+            </button>
           )}
           <div className="hint text-center mt-1.5">Scanned from your room · {apt.name}</div>
         </div>
@@ -275,7 +259,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             {inCart("night") ? "Update booking" : "Add to booking"}
           </button>
           {inCart("night") && (
-            <button className="btn btn-ghost mt-2.5" onClick={() => { removeFlow("night"); go("welcome"); }}>Remove</button>
+            <button className="btn btn-ghost mt-2.5" onClick={() => { const rest = cart.filter((c) => c.flow !== "night"); removeFlow("night"); go(rest.length ? "summary" : "welcome"); }}>Remove</button>
           )}
         </div>
       </div>
@@ -312,7 +296,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             {inCart("late") ? "Update booking" : "Add to booking"}
           </button>
           {inCart("late") && (
-            <button className="btn btn-ghost mt-2.5" onClick={() => { removeFlow("late"); go("welcome"); }}>Remove</button>
+            <button className="btn btn-ghost mt-2.5" onClick={() => { const rest = cart.filter((c) => c.flow !== "late"); removeFlow("late"); go(rest.length ? "summary" : "welcome"); }}>Remove</button>
           )}
         </div>
       </div>

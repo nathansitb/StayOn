@@ -56,6 +56,14 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
   const [nearby, setNearby] = useState<
     Array<{ public_code: string; name: string; location: string | null; km: number }>
   >([]);
+  const [booking, setBooking] = useState<{
+    reference: string;
+    aptName: string;
+    checkIn: string;
+    total: number;
+    services: Array<{ label: string; amount: number }>;
+    email: string | null;
+  } | null>(null);
 
   // Draft config for each service screen
   const [nightDate, setNightDate] = useState(tomorrowISO());
@@ -74,7 +82,16 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    if (p.get("paid") === "1") setScreen("confirm");
+    if (p.get("paid") === "1") {
+      setScreen("confirm");
+      const sid = p.get("session_id");
+      if (sid) {
+        fetch(`/api/booking?session_id=${sid}`)
+          .then((r) => r.json())
+          .then((j) => { if (j.found) setBooking(j); })
+          .catch(() => {});
+      }
+    }
   }, []);
 
   const total = cart.reduce((s, x) => s + x.amount, 0);
@@ -419,17 +436,42 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
     );
   } else if (screen === "confirm") {
     const nightSvc = cart.find((c) => c.flow === "night");
-    const when = nightSvc ? fmtDate(nightSvc.date) : fmtDate(cart[0]?.date || tomorrowISO());
+    const fallbackWhen = nightSvc ? fmtDate(nightSvc.date) : fmtDate(cart[0]?.date || tomorrowISO());
+    const when = booking?.checkIn ? fmtDate(booking.checkIn) : fallbackWhen;
+    const svcList = booking?.services ?? cart.map((c) => ({ label: c.label, amount: c.amount }));
+    const totalPaid = booking?.total ?? total;
     body = (
-      <div className="min-h-full flex flex-col items-center justify-center text-center px-8 py-10 animate-fade">
-        <div className="w-[84px] h-[84px] rounded-full flex items-center justify-center mb-6" style={{ background: "rgba(198,167,106,.08)", border: "1px solid #c6a76a" }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="#C6A76A" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10"><path d="M20 6L9 17l-5-5" /></svg>
+      <div className="min-h-full flex flex-col px-8 pt-16 pb-10 animate-fade">
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div className="w-[80px] h-[80px] rounded-full flex items-center justify-center mb-6" style={{ background: "rgba(198,167,106,.08)", border: "1px solid #c6a76a" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C6A76A" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10"><path d="M20 6L9 17l-5-5" /></svg>
+          </div>
+          <div className="font-serif text-[25px] font-semibold leading-[1.2]">Your booking is confirmed.</div>
+          <div className="text-creamDim text-[13.5px] mt-3">{booking?.aptName ?? apt.name} · {when}</div>
+
+          {svcList.length > 0 && (
+            <div className="card w-full px-[18px] py-1 mt-6 text-left">
+              {svcList.map((s, i) => (
+                <div key={i} className="flex justify-between items-center py-2.5 border-b border-line last:border-b-0 text-[13.5px]">
+                  <span className="text-creamDim">{s.label}</span>
+                  <span className="text-cream">{eur(s.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-between w-full mt-3.5 items-baseline">
+            <span className="text-muted text-[13px]">Total paid</span>
+            <span className="font-serif text-[19px] font-semibold">{eur(totalPaid)}</span>
+          </div>
+
+          {booking?.reference && (
+            <div className="text-muted text-[11px] uppercase tracking-[1.5px] mt-6">Reference · {booking.reference}</div>
+          )}
+          <div className="text-muted text-[12px] mt-1.5">
+            Receipt sent{booking?.email ? ` to ${booking.email}` : " to your email"}
+          </div>
         </div>
-        <div className="font-serif text-[25px] font-semibold leading-[1.2]">Your booking is confirmed.</div>
-        <div className="text-creamDim text-[13.5px] mt-3">{apt.name} · {when}</div>
-        <div className="text-muted text-[10px] uppercase tracking-[1.5px] mt-5">Receipt sent to your email</div>
-        <button className="btn btn-ghost !w-auto px-8 mt-8" onClick={() => { setCart([]); go("welcome"); }}>Back to start</button>
-        <div className="text-muted text-[13px] mt-6">Thank you for choosing StayOn.</div>
+        <button className="btn btn-ghost mt-6" onClick={() => { setCart([]); setBooking(null); go("welcome"); }}>Back to start</button>
       </div>
     );
   } else if (screen === "unavailable") {
@@ -474,7 +516,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-3">
+    <div className="min-h-[100dvh] flex items-stretch sm:items-center justify-center px-0 py-0 sm:px-3 sm:py-8">
       <PhoneFrame>{body}</PhoneFrame>
     </div>
   );

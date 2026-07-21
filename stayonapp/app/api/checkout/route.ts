@@ -110,7 +110,7 @@ export async function POST(req: Request) {
         agency_id: apt.agency_id,
         amount: String(total),
       },
-      success_url: `${origin}/a/${code}?paid=1`,
+      success_url: `${origin}/a/${code}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/a/${code}?canceled=1`,
     });
     return Response.json({ url: session.url });

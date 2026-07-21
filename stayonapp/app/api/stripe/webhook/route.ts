@@ -145,8 +145,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const reference =
-      "SO-" + (firstId ? firstId.slice(0, 8) : session.id.slice(-8)).toUpperCase();
+    void firstId;
+    // Reference derived from the payment id so it matches the confirmation screen.
+    const reference = "SO-" + String(paymentId).slice(-8).toUpperCase();
 
     // Notify the guest and the agency (best-effort).
     const [{ data: apt }, { data: profs }] = await Promise.all([

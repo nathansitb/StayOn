@@ -95,6 +95,10 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
   }, []);
 
   const total = cart.reduce((s, x) => s + x.amount, 0);
+
+  // Per-apartment prices (fall back to defaults when the agency hasn't set them).
+  const lateOpts = LATE_OPTIONS.map((o) => ({ time: o.time, price: apt.late_prices?.[o.time] ?? o.price }));
+  const cleanSvcs = CLEANING_SERVICES.map((s) => ({ key: s.key, price: apt.cleaning_prices?.[s.key] ?? s.price }));
   const inCart = (f: Flow) => cart.find((c) => c.flow === f);
   function upsert(s: Service) {
     setCart((prev) => [...prev.filter((c) => c.flow !== s.flow), s]);
@@ -143,9 +147,9 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
     upsert({
       flow: "late",
       date: lateDate,
-      lateTime: LATE_OPTIONS[late].time,
-      amount: LATE_OPTIONS[late].price,
-      label: `Late checkout · ${LATE_OPTIONS[late].time}`,
+      lateTime: lateOpts[late].time,
+      amount: lateOpts[late].price,
+      label: `Late checkout · ${lateOpts[late].time}`,
     });
     go("summary");
   }
@@ -154,8 +158,8 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
       flow: "cleaning",
       date: cleanDate,
       cleaningSlot: CLEANING_SLOTS[slot],
-      amount: CLEANING_SERVICES[svc].price,
-      label: `${SVC_LABEL[CLEANING_SERVICES[svc].key]} · ${CLEANING_SLOTS[slot]}`,
+      amount: cleanSvcs[svc].price,
+      label: `${SVC_LABEL[cleanSvcs[svc].key]} · ${CLEANING_SLOTS[slot]}`,
     });
     go("summary");
   }
@@ -313,7 +317,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             />
           </div>
           <div className="mt-5 flex flex-col gap-3">
-            {LATE_OPTIONS.map((o, i) => (
+            {lateOpts.map((o, i) => (
               <button key={o.time} onClick={() => setLate(i)}
                 className="flex items-center justify-between rounded-[3px] px-[18px] py-[15px] border text-left"
                 style={{ borderColor: i === late ? "#c6a76a" : "var(--line)", background: i === late ? "rgba(198,167,106,.07)" : "#141311" }}>
@@ -351,7 +355,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
           </div>
           <div className="text-[13px] text-muted mt-5 mb-2">Choose a service</div>
           <div className="flex flex-col gap-3">
-            {CLEANING_SERVICES.map((s, i) => (
+            {cleanSvcs.map((s, i) => (
               <button key={s.key} onClick={() => setSvc(i)}
                 className="flex items-center justify-between rounded-[3px] px-[18px] py-[15px] border text-left"
                 style={{ borderColor: i === svc ? "#c6a76a" : "var(--line)", background: i === svc ? "rgba(198,167,106,.07)" : "#141311" }}>

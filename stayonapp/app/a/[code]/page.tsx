@@ -14,7 +14,7 @@ export default async function ApartmentGuestPage({
   const { data } = await admin
     .from("apartments")
     .select(
-      "id, public_code, name, location, image_url, extend_price, extra_night, late_checkout, cleaning, ical_url, agency_id"
+      "id, public_code, name, location, image_url, extend_price, extra_night, late_checkout, cleaning, ical_url, agency_id, late_prices, cleaning_prices"
     )
     .eq("public_code", params.code)
     .single();

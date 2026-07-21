@@ -10,4 +10,6 @@ export interface DbApartment {
   cleaning: boolean;
   ical_url: string | null;
   agency_id: string;
+  late_prices?: Record<string, number> | null;
+  cleaning_prices?: Record<string, number> | null;
 }

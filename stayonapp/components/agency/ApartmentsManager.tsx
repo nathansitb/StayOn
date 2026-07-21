@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { QrCode } from "@/components/ui/QrCode";
+import { LATE_OPTIONS, CLEANING_SERVICES } from "@/lib/data";
+
+const CLEAN_LABEL: Record<string, string> = { refresh: "Refresh", full: "Full", linen: "Linen" };
 
 interface Apt {
   id: string;
@@ -17,6 +20,8 @@ interface Apt {
   ical_url: string | null;
   lat: number | null;
   lng: number | null;
+  late_prices: Record<string, number> | null;
+  cleaning_prices: Record<string, number> | null;
 }
 
 /** Geocode an address to coordinates (best-effort). */
@@ -148,6 +153,16 @@ function ApartmentRow({
   const [lat, setLat] = useState<number | null>(apt.lat);
   const [lng, setLng] = useState<number | null>(apt.lng);
   const [locating, setLocating] = useState(false);
+  const [latePrices, setLatePrices] = useState<Record<string, number>>(() => {
+    const base: Record<string, number> = {};
+    LATE_OPTIONS.forEach((o) => { base[o.time] = apt.late_prices?.[o.time] ?? o.price; });
+    return base;
+  });
+  const [cleanPrices, setCleanPrices] = useState<Record<string, number>>(() => {
+    const base: Record<string, number> = {};
+    CLEANING_SERVICES.forEach((s) => { base[s.key] = apt.cleaning_prices?.[s.key] ?? s.price; });
+    return base;
+  });
   const [opts, setOpts] = useState({
     extra_night: apt.extra_night,
     late_checkout: apt.late_checkout,
@@ -198,7 +213,16 @@ function ApartmentRow({
     }
     await supabase
       .from("apartments")
-      .update({ name, location, extend_price: price, image_url: photo || null, lat: la, lng: ln })
+      .update({
+        name,
+        location,
+        extend_price: price,
+        image_url: photo || null,
+        lat: la,
+        lng: ln,
+        late_prices: latePrices,
+        cleaning_prices: cleanPrices,
+      })
       .eq("id", apt.id);
     setEditing(false);
     onChange();
@@ -278,6 +302,36 @@ function ApartmentRow({
                   {uploading ? "Uploading…" : photo ? "Change photo" : "Upload from your computer"}
                   <input type="file" accept="image/*" onChange={onPhotoChange} className="hidden" disabled={uploading} />
                 </label>
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <div className="text-[12.5px] text-muted mb-2">Late checkout prices (€)</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {LATE_OPTIONS.map((o) => (
+                  <div key={o.time} className="field !mt-0">
+                    <label>{o.time}</label>
+                    <input
+                      type="number"
+                      value={latePrices[o.time] ?? o.price}
+                      onChange={(e) => setLatePrices((p) => ({ ...p, [o.time]: Number(e.target.value) }))}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <div className="text-[12.5px] text-muted mb-2">Cleaning prices (€)</div>
+              <div className="grid grid-cols-3 gap-2">
+                {CLEANING_SERVICES.map((s) => (
+                  <div key={s.key} className="field !mt-0">
+                    <label>{CLEAN_LABEL[s.key] ?? s.key}</label>
+                    <input
+                      type="number"
+                      value={cleanPrices[s.key] ?? s.price}
+                      onChange={(e) => setCleanPrices((p) => ({ ...p, [s.key]: Number(e.target.value) }))}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
             <div className="sm:col-span-2 flex gap-2">

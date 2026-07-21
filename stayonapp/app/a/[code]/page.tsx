@@ -7,8 +7,10 @@ export const dynamic = "force-dynamic";
 
 export default async function ApartmentGuestPage({
   params,
+  searchParams,
 }: {
   params: { code: string };
+  searchParams: { paid?: string; canceled?: string };
 }) {
   const admin = createAdminClient();
   const { data } = await admin
@@ -20,6 +22,15 @@ export default async function ApartmentGuestPage({
     .single();
 
   if (!data) notFound();
+
+  // Count a scan on a fresh open (not the redirect back from Stripe).
+  if (!searchParams?.paid && !searchParams?.canceled) {
+    try {
+      await admin.from("scans").insert({ apartment_id: data.id, agency_id: data.agency_id });
+    } catch {
+      /* never block the guest page on analytics */
+    }
+  }
 
   return <RealGuestFlow apt={data as DbApartment} />;
 }

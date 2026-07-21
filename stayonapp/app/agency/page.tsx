@@ -13,16 +13,19 @@ function bookingType(b: { flow: string; nights: number; late_time: string | null
 export default async function AgencyOverview() {
   const { supabase, agencyName } = await requireAgency();
 
-  const [{ data: bookings }, { data: apts }] = await Promise.all([
+  const [{ data: bookings }, { data: apts }, { data: scans }] = await Promise.all([
     supabase
       .from("bookings")
       .select("id, guest_name, flow, nights, late_time, cleaning_slot, amount, created_at, apartment_id")
       .order("created_at", { ascending: false }),
     supabase.from("apartments").select("id, name"),
+    supabase.from("scans").select("apartment_id"),
   ]);
 
   const bk = bookings ?? [];
-  const aptName = new Map((apts ?? []).map((a) => [a.id, a.name]));
+  const sc = scans ?? [];
+  const aptList = apts ?? [];
+  const aptName = new Map(aptList.map((a) => [a.id, a.name]));
   const now = new Date();
 
   const revenue = bk.reduce((s, b) => s + (b.amount ?? 0), 0);
@@ -32,16 +35,34 @@ export default async function AgencyOverview() {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
     .reduce((s, b) => s + (b.amount ?? 0), 0);
-  const extensions = bk.filter((b) => b.flow === "night").length;
-  const lates = bk.filter((b) => b.flow === "late").length;
-  const cleanings = bk.filter((b) => b.flow === "cleaning").length;
+
+  const totalScans = sc.length;
+  const conversion = totalScans ? (bk.length / totalScans) * 100 : 0;
+
+  // Per-apartment performance
+  const scanByApt = new Map<string, number>();
+  sc.forEach((s) => { if (s.apartment_id) scanByApt.set(s.apartment_id, (scanByApt.get(s.apartment_id) ?? 0) + 1); });
+  const bookByApt = new Map<string, number>();
+  const revByApt = new Map<string, number>();
+  bk.forEach((b) => {
+    if (!b.apartment_id) return;
+    bookByApt.set(b.apartment_id, (bookByApt.get(b.apartment_id) ?? 0) + 1);
+    revByApt.set(b.apartment_id, (revByApt.get(b.apartment_id) ?? 0) + (b.amount ?? 0));
+  });
+  const perApt = aptList
+    .map((a) => {
+      const scans = scanByApt.get(a.id) ?? 0;
+      const books = bookByApt.get(a.id) ?? 0;
+      return { id: a.id, name: a.name, scans, books, conv: scans ? (books / scans) * 100 : 0, rev: revByApt.get(a.id) ?? 0 };
+    })
+    .sort((x, y) => y.rev - x.rev);
 
   const kpis = [
     { l: "Revenue", n: eur(revenue), gold: true },
     { l: "This month", n: eur(monthRevenue) },
+    { l: "Scans", n: String(totalScans) },
     { l: "Bookings", n: String(bk.length) },
-    { l: "Extensions", n: String(extensions) },
-    { l: "Late / Cleaning", n: `${lates} / ${cleanings}` },
+    { l: "Conversion", n: totalScans ? `${conversion.toFixed(1)}%` : "—", gold: true },
   ];
 
   return (
@@ -57,6 +78,28 @@ export default async function AgencyOverview() {
           </div>
         ))}
       </div>
+
+      {perApt.length > 0 && (
+        <div className="card p-1.5 mt-6">
+          <div className="font-serif text-[18px] font-semibold px-5 pt-4 pb-2">Performance by apartment</div>
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.1fr] gap-3 px-5 py-3 text-[10px] uppercase tracking-[1px] text-muted border-b border-line">
+            <div>Apartment</div>
+            <div className="text-right">Scans</div>
+            <div className="text-right">Bookings</div>
+            <div className="text-right">Conversion</div>
+            <div className="text-right">Revenue</div>
+          </div>
+          {perApt.map((a) => (
+            <div key={a.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1.1fr] gap-3 px-5 py-3.5 border-b border-line last:border-b-0 text-[14px] items-center">
+              <div className="font-medium truncate">{a.name}</div>
+              <div className="text-right text-creamDim">{a.scans}</div>
+              <div className="text-right text-creamDim">{a.books}</div>
+              <div className="text-right font-serif" style={a.conv > 0 ? { color: "#c6a76a" } : {}}>{a.scans ? `${a.conv.toFixed(1)}%` : "—"}</div>
+              <div className="text-right font-serif">{eur(a.rev)}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="card p-1.5 mt-6">
         <div className="font-serif text-[18px] font-semibold px-5 pt-4 pb-2">Recent bookings</div>

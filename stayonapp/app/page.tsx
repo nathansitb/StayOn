@@ -22,7 +22,10 @@ const JSON_LD = {
       slogan: "Extend the moment. In style.",
       foundingLocation: { "@type": "Place", name: "Paris, France" },
       areaServed: { "@type": "Country", name: "France" },
-      founder: { "@type": "Person", name: "Nathan Sitbon" },
+      founder: [
+        { "@type": "Person", name: "Nathan Sitbon" },
+        { "@type": "Person", name: "Aaron Fratty" },
+      ],
       knowsAbout: ["late checkout", "extra night booking", "short-term rental upsell", "concierge services", "Airbnb property management", "QR code guest services"],
       sameAs: [] as string[],
     },

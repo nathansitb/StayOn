@@ -49,8 +49,8 @@ export const FAQ: { q: { en: string; fr: string }; a: { en: string; fr: string }
   {
     q: { en: "Who is behind StayOn?", fr: "Qui est derrière StayOn ?" },
     a: {
-      en: "StayOn was founded in Paris by Nathan Sitbon. Contact: contact@stay-on.app.",
-      fr: "StayOn a été fondé à Paris par Nathan Sitbon. Contact : contact@stay-on.app.",
+      en: "StayOn was founded in Paris by Nathan Sitbon and Aaron Fratty. Contact: contact@stay-on.app.",
+      fr: "StayOn a été fondé à Paris par Nathan Sitbon et Aaron Fratty. Contact : contact@stay-on.app.",
     },
   },
 ];

@@ -18,6 +18,7 @@ export function LandingNav() {
           <a href="#guests" className="hover:text-cream transition">{t("navGuests")}</a>
           <a href="#hosts" className="hover:text-cream transition">{t("navHosts")}</a>
           <a href="#pricing" className="hover:text-cream transition">{t("navPricing")}</a>
+          <a href="#faq" className="hover:text-cream transition">FAQ</a>
           <Link href="/stay" className="hover:text-cream transition">{t("tryDemo")}</Link>
         </div>
 

@@ -29,16 +29,23 @@ const SVC_LABEL: Record<string, string> = {
   linen: "Linen & towels",
 };
 
+// Dates are handled in the guest's local time (never UTC): in France,
+// toISOString() shifts midnight back to the previous day.
+function localISO(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return localISO(new Date());
 }
 function tomorrowISO() {
-  return new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return localISO(d);
 }
 function addDaysISO(iso: string, n: number) {
   const d = new Date(iso + "T00:00:00");
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return localISO(d);
 }
 function fmtDate(iso: string) {
   if (!iso) return "";
@@ -530,7 +537,7 @@ export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestB
   }
 
   return (
-    <div className="min-h-[100dvh] flex items-stretch sm:items-center justify-center px-0 py-0 sm:px-3 sm:py-8">
+    <div className="w-full min-h-[100dvh] flex items-stretch sm:items-center justify-center px-0 py-0 sm:px-3 sm:py-8">
       <PhoneFrame>{body}</PhoneFrame>
     </div>
   );

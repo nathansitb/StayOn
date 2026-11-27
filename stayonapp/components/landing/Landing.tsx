@@ -12,6 +12,7 @@ import {
   type Feature,
 } from "@/lib/content";
 import Image from "next/image";
+import { FAQ } from "@/lib/faq";
 import { Logo } from "@/components/ui/Logo";
 
 function Section({
@@ -261,6 +262,25 @@ export function Landing() {
           <p className="text-center text-[13px] text-creamDim mt-6 leading-[1.6]">
             {pick(PRICING.commission, lang)}
           </p>
+        </div>
+      </Section>
+
+      {/* FAQ — the answers search engines and AI assistants quote */}
+      <Section id="faq" className="py-16 scroll-mt-20">
+        <div className="text-center">
+          <div className="eyebrow">FAQ</div>
+          <h2 className="font-serif text-[34px] font-semibold mt-3">{lang === "fr" ? "StayOn en quelques questions" : "StayOn in a few questions"}</h2>
+        </div>
+        <div className="max-w-[760px] mx-auto mt-10 border-t border-line">
+          {FAQ.map((f, i) => (
+            <details key={i} className="group border-b border-line" open={i === 0}>
+              <summary className="flex items-center justify-between gap-6 py-5 cursor-pointer list-none">
+                <h3 className="font-serif text-[20px] font-semibold">{f.q[lang]}</h3>
+                <span className="text-gold text-[20px] transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="text-creamDim text-[15px] leading-[1.7] pb-6 -mt-1">{f.a[lang]}</p>
+            </details>
+          ))}
         </div>
       </Section>
 

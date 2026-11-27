@@ -9,8 +9,11 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://stay-on.app"),
-  title: "StayOn — Extend the moment. In style.",
+  title: "StayOn — Late checkout, extra nights & cleaning for short-term rentals",
   description: DESCRIPTION,
+  applicationName: "StayOn",
+  keywords: ["StayOn", "Stay On", "late checkout", "extra night", "short-term rental", "conciergerie", "Airbnb", "QR code", "upsell", "Paris"],
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: "https://stay-on.app",

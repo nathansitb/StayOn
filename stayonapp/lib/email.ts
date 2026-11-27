@@ -105,3 +105,36 @@ export function agencyEmailHtml(o: {
     </table>
   `);
 }
+
+/** Daily digest / weekly report sent by /api/cron/reports. */
+export function reportEmailHtml(o: {
+  title: string;
+  intro: string;
+  revenue: string;
+  bookings: number;
+  scans: number;
+  conversion: string;
+  lines: Array<[string, string]>;
+  dashboardUrl: string;
+}): string {
+  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return shell(`
+    <div style="color:#0B0B0B;font-size:22px;font-weight:600">${esc(o.title)}</div>
+    <p style="color:#5f5a51;font-size:14px;line-height:1.65;font-family:Arial,sans-serif;margin:10px 0 20px">${esc(o.intro)}</p>
+    <div style="font-size:34px;font-weight:600;color:#0B0B0B">${esc(o.revenue)}</div>
+    <div style="color:#8B857A;font-size:12px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin:4px 0 18px">Revenue</div>
+    <table style="width:100%;border-collapse:collapse">
+      ${row("Bookings", String(o.bookings))}
+      ${row("Scans", String(o.scans))}
+      ${row("Conversion", o.conversion)}
+      ${o.lines.map(([k, v]) => row(esc(k), esc(v))).join("")}
+    </table>
+    <div style="text-align:center;margin-top:26px">
+      <a href="${o.dashboardUrl}" style="display:inline-block;background:#0B0B0B;color:#F3EDE1;text-decoration:none;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 26px;border-radius:2px">Open my dashboard</a>
+    </div>
+  `);
+}
+
+export function dashboardUrl(): string {
+  return `${siteUrl()}/agency`;
+}

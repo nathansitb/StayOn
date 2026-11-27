@@ -1,46 +1,29 @@
 import { requireAgency } from "@/lib/agency-auth";
-import { SignOutButton } from "@/components/auth/SignOutButton";
+import { getAgencySettings, SETTINGS_TABS, type SettingsTab } from "@/lib/agency-settings";
+import { SettingsEditor } from "@/components/agency/SettingsEditor";
+import { PageHeader } from "@/components/agency/ui";
 
 export const dynamic = "force-dynamic";
 
-export default async function AgencySettings() {
-  const { agencyName, email } = await requireAgency();
+export default async function AgencySettings({ searchParams }: { searchParams: { tab?: string } }) {
+  const { supabase, agencyId, agencyName, email } = await requireAgency();
+  const [settings, { count }] = await Promise.all([
+    getAgencySettings(supabase, agencyId),
+    supabase.from("apartments").select("id", { count: "exact", head: true }),
+  ]);
+  const tab = (SETTINGS_TABS.find((t) => t.id === searchParams.tab)?.id ?? "profile") as SettingsTab;
 
   return (
     <div>
-      <h1 className="font-serif text-[28px] font-semibold">Settings</h1>
-      <p className="text-muted text-[13px] mt-1">Your account.</p>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-        <div className="card p-6">
-          <div className="font-serif text-[17px] font-semibold">Account</div>
-          <div className="mt-4 space-y-3 text-[14px]">
-            <Row k="Agency" v={agencyName} />
-            <Row k="Email" v={email} />
-          </div>
-          <div className="mt-6">
-            <SignOutButton />
-          </div>
-        </div>
-
-        <div className="card p-6" style={{ borderColor: "rgba(198,167,106,.35)" }}>
-          <div className="font-serif text-[17px] font-semibold">Pricing</div>
-          <div className="font-serif text-[32px] font-semibold text-gold mt-3">Free</div>
-          <p className="text-[13px] text-creamDim mt-3 leading-[1.6]">
-            No monthly fee. StayOn only earns a small commission on each booking —
-            you pay nothing to set up, and nothing unless you earn.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex justify-between border-b border-line pb-3 last:border-b-0">
-      <span className="text-muted">{k}</span>
-      <span className="text-cream font-medium capitalize">{v}</span>
+      <PageHeader title="Settings" sub="Customise your guest page, your services and prices, your notifications and your account." />
+      <SettingsEditor
+        agencyId={agencyId}
+        initial={settings}
+        initialTab={tab}
+        agencyName={agencyName}
+        email={email}
+        apartmentCount={count ?? 0}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { QrCode } from "@/components/ui/QrCode";
 import { LATE_OPTIONS, CLEANING_SERVICES } from "@/lib/data";
+import { withDefaults, type AgencySettings } from "@/lib/agency-settings";
 
 const CLEAN_LABEL: Record<string, string> = { refresh: "Refresh", full: "Full", linen: "Linen" };
 
@@ -47,6 +48,8 @@ export function ApartmentsManager({ agencyId }: { agencyId: string }) {
   const [price, setPrice] = useState(150);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Agency defaults (Settings → Services & pricing) applied to every new apartment.
+  const [defaults, setDefaults] = useState<AgencySettings["services"] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,7 +64,17 @@ export function ApartmentsManager({ agencyId }: { agencyId: string }) {
   useEffect(() => {
     setOrigin(window.location.origin);
     load();
-  }, [load]);
+    supabase
+      .from("agency_settings")
+      .select("data")
+      .eq("agency_id", agencyId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const d = withDefaults(data?.data).services;
+        setDefaults(d);
+        setPrice(d.nightPrice);
+      });
+  }, [load, supabase, agencyId]);
 
   async function addApt(e: React.FormEvent) {
     e.preventDefault();
@@ -71,7 +84,23 @@ export function ApartmentsManager({ agencyId }: { agencyId: string }) {
     const coords = await geocode(location);
     const { error } = await supabase
       .from("apartments")
-      .insert({ name, location, extend_price: price, agency_id: agencyId, lat: coords?.lat ?? null, lng: coords?.lng ?? null });
+      .insert({
+        name,
+        location,
+        extend_price: price,
+        agency_id: agencyId,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+        ...(defaults
+          ? {
+              extra_night: defaults.night,
+              late_checkout: defaults.late,
+              cleaning: defaults.cleaning,
+              late_prices: defaults.latePrices,
+              cleaning_prices: defaults.cleaningPrices,
+            }
+          : {}),
+      });
     setBusy(false);
     if (error) {
       setErr(error.message);

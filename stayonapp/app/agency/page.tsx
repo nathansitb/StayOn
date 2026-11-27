@@ -1,87 +1,113 @@
+import Link from "next/link";
 import { requireAgency } from "@/lib/agency-auth";
+import {
+  type BookingRow, type ScanRow, FLOWS, FLOW_LABEL,
+  eur, pct, bookingLabel, delta, sum, startOfMonth, fmtDateTime,
+} from "@/lib/agency-data";
+import { Kpi, Bar, SectionCard, Empty } from "@/components/agency/ui";
 
 export const dynamic = "force-dynamic";
-
-const eur = (n: number) => "€" + n.toLocaleString("en-US");
-
-function bookingType(b: { flow: string; nights: number; late_time: string | null; cleaning_slot: string | null }) {
-  if (b.flow === "night") return `Extra night ×${b.nights}`;
-  if (b.flow === "late") return `Late checkout ${b.late_time ?? ""}`;
-  return `Cleaning ${b.cleaning_slot ?? ""}`;
-}
 
 export default async function AgencyOverview() {
   const { supabase, agencyName } = await requireAgency();
 
   const [{ data: bookings }, { data: apts }, { data: scans }] = await Promise.all([
-    supabase
-      .from("bookings")
-      .select("id, guest_name, flow, nights, late_time, cleaning_slot, amount, created_at, apartment_id")
-      .order("created_at", { ascending: false }),
+    supabase.from("bookings").select("*").order("created_at", { ascending: false }),
     supabase.from("apartments").select("id, name"),
-    supabase.from("scans").select("apartment_id"),
+    supabase.from("scans").select("apartment_id, created_at"),
   ]);
 
-  const bk = bookings ?? [];
-  const sc = scans ?? [];
+  const bk = (bookings ?? []) as BookingRow[];
+  const sc = (scans ?? []) as ScanRow[];
   const aptList = apts ?? [];
   const aptName = new Map(aptList.map((a) => [a.id, a.name]));
-  const now = new Date();
 
-  const revenue = bk.reduce((s, b) => s + (b.amount ?? 0), 0);
-  const monthRevenue = bk
-    .filter((b) => {
-      const d = new Date(b.created_at);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    })
-    .reduce((s, b) => s + (b.amount ?? 0), 0);
+  // This month vs last month
+  const m0 = startOfMonth(), m1 = startOfMonth(new Date(), -1);
+  const inM0 = (iso: string) => new Date(iso) >= m0;
+  const inM1 = (iso: string) => { const d = new Date(iso); return d >= m1 && d < m0; };
+  const bk0 = bk.filter((b) => inM0(b.created_at)), bk1 = bk.filter((b) => inM1(b.created_at));
+  const sc0 = sc.filter((s) => inM0(s.created_at)), sc1 = sc.filter((s) => inM1(s.created_at));
+  const rev0 = sum(bk0), rev1 = sum(bk1);
+  const conv0 = sc0.length ? (bk0.length / sc0.length) * 100 : 0;
+  const count = (rows: BookingRow[], f: string) => rows.filter((b) => b.flow === f).length;
 
-  const totalScans = sc.length;
-  const conversion = totalScans ? (bk.length / totalScans) * 100 : 0;
+  const revenueAll = sum(bk);
+  const avgBasket = bk.length ? revenueAll / bk.length : 0;
 
-  // Per-apartment performance
-  const scanByApt = new Map<string, number>();
-  sc.forEach((s) => { if (s.apartment_id) scanByApt.set(s.apartment_id, (scanByApt.get(s.apartment_id) ?? 0) + 1); });
-  const bookByApt = new Map<string, number>();
-  const revByApt = new Map<string, number>();
-  bk.forEach((b) => {
-    if (!b.apartment_id) return;
-    bookByApt.set(b.apartment_id, (bookByApt.get(b.apartment_id) ?? 0) + 1);
-    revByApt.set(b.apartment_id, (revByApt.get(b.apartment_id) ?? 0) + (b.amount ?? 0));
-  });
+  // Service mix (all time)
+  const mix = FLOWS.map((f) => ({ f, rev: sum(bk.filter((b) => b.flow === f)), n: count(bk, f) }));
+  const mixMax = Math.max(1, ...mix.map((m) => m.rev));
+
+  // Per apartment (all time)
   const perApt = aptList
     .map((a) => {
-      const scans = scanByApt.get(a.id) ?? 0;
-      const books = bookByApt.get(a.id) ?? 0;
-      return { id: a.id, name: a.name, scans, books, conv: scans ? (books / scans) * 100 : 0, rev: revByApt.get(a.id) ?? 0 };
+      const s = sc.filter((x) => x.apartment_id === a.id).length;
+      const rows = bk.filter((x) => x.apartment_id === a.id);
+      return { id: a.id, name: a.name, scans: s, books: rows.length, conv: s ? (rows.length / s) * 100 : 0, rev: sum(rows) };
     })
     .sort((x, y) => y.rev - x.rev);
 
-  const kpis = [
-    { l: "Revenue", n: eur(revenue), gold: true },
-    { l: "This month", n: eur(monthRevenue) },
-    { l: "Scans", n: String(totalScans) },
-    { l: "Bookings", n: String(bk.length) },
-    { l: "Conversion", n: totalScans ? `${conversion.toFixed(1)}%` : "—", gold: true },
-  ];
+  const monthName = m0.toLocaleString("en-US", { month: "long" });
 
   return (
     <div>
-      <h1 className="font-serif text-[28px] font-semibold">{agencyName}</h1>
-      <p className="text-muted text-[13px] mt-1">Overview</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[30px] font-semibold leading-none capitalize">{agencyName}</h1>
+          <p className="text-muted text-[13px] mt-2">Overview · {monthName} {m0.getFullYear()}</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/agency/revenue" className="text-[11px] uppercase tracking-[1px] text-muted hover:text-cream border border-line rounded-[2px] px-3 py-2 transition">Revenue →</Link>
+          <Link href="/agency/apartments" className="text-[11px] uppercase tracking-[1px] text-[#111] bg-cream rounded-[2px] px-3 py-2">+ Apartment</Link>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-        {kpis.map((k) => (
-          <div key={k.l} className="card p-5" style={k.gold ? { borderColor: "rgba(198,167,106,.35)" } : {}}>
-            <div className="text-[10px] uppercase tracking-[1.5px] text-muted">{k.l}</div>
-            <div className={`font-serif text-[24px] font-semibold mt-2 ${k.gold ? "text-gold" : ""}`}>{k.n}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        <Kpi label={`Revenue · ${monthName}`} value={eur(rev0)} delta={delta(rev0, rev1)} gold />
+        <Kpi label="Bookings this month" value={String(bk0.length)} delta={delta(bk0.length, bk1.length)} />
+        <Kpi label="Scans this month" value={String(sc0.length)} delta={delta(sc0.length, sc1.length)} />
+        <Kpi label="Conversion this month" value={sc0.length ? pct(conv0) : "—"} hint="Bookings ÷ scans" gold />
+        <Kpi label="Active QR codes" value={String(aptList.length)} hint="One per apartment" />
+        <Kpi label="Extra nights sold" value={String(count(bk0, "night"))} delta={delta(count(bk0, "night"), count(bk1, "night"))} />
+        <Kpi label="Late checkouts sold" value={String(count(bk0, "late"))} delta={delta(count(bk0, "late"), count(bk1, "late"))} />
+        <Kpi label="Cleanings sold" value={String(count(bk0, "cleaning"))} delta={delta(count(bk0, "cleaning"), count(bk1, "cleaning"))} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-4">
+        <SectionCard title="Revenue by service" right={<span className="text-[12px] text-muted pr-1">All time · {eur(revenueAll)}</span>}>
+          <div className="px-5 pb-5 pt-2 space-y-5">
+            {mix.map((m) => (
+              <div key={m.f}>
+                <div className="flex justify-between text-[13.5px] mb-2">
+                  <span>{FLOW_LABEL[m.f]} <span className="text-muted">· {m.n}</span></span>
+                  <span className="font-serif text-[16px]">{eur(m.rev)}</span>
+                </div>
+                <Bar value={m.rev} max={mixMax} />
+              </div>
+            ))}
           </div>
-        ))}
+        </SectionCard>
+        <SectionCard title="At a glance">
+          <div className="px-5 pb-5 pt-1 text-[14px]">
+            {[
+              ["Total revenue", eur(revenueAll)],
+              ["Total bookings", String(bk.length)],
+              ["Average basket", bk.length ? eur(avgBasket) : "—"],
+              ["Total scans", String(sc.length)],
+              ["All-time conversion", sc.length ? pct((bk.length / sc.length) * 100) : "—"],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between py-3 border-b border-line last:border-b-0">
+                <span className="text-muted">{k}</span>
+                <span className="font-serif text-[16px]">{v}</span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
       </div>
 
       {perApt.length > 0 && (
-        <div className="card p-1.5 mt-6">
-          <div className="font-serif text-[18px] font-semibold px-5 pt-4 pb-2">Performance by apartment</div>
+        <SectionCard title="Performance by apartment">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.1fr] gap-3 px-5 py-3 text-[10px] uppercase tracking-[1px] text-muted border-b border-line">
             <div>Apartment</div>
             <div className="text-right">Scans</div>
@@ -89,42 +115,36 @@ export default async function AgencyOverview() {
             <div className="text-right">Conversion</div>
             <div className="text-right">Revenue</div>
           </div>
-          {perApt.map((a) => (
+          {perApt.slice(0, 10).map((a) => (
             <div key={a.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_1.1fr] gap-3 px-5 py-3.5 border-b border-line last:border-b-0 text-[14px] items-center">
               <div className="font-medium truncate">{a.name}</div>
               <div className="text-right text-creamDim">{a.scans}</div>
               <div className="text-right text-creamDim">{a.books}</div>
-              <div className="text-right font-serif" style={a.conv > 0 ? { color: "#c6a76a" } : {}}>{a.scans ? `${a.conv.toFixed(1)}%` : "—"}</div>
-              <div className="text-right font-serif">{eur(a.rev)}</div>
+              <div className="text-right" style={a.conv > 0 ? { color: "#c6a76a" } : {}}>{a.scans ? pct(a.conv) : "—"}</div>
+              <div className="text-right font-serif text-[16px]">{eur(a.rev)}</div>
             </div>
           ))}
-        </div>
+          {perApt.length > 10 && (
+            <Link href="/agency/revenue" className="block px-5 py-3 text-[12px] text-muted hover:text-cream">See all {perApt.length} apartments →</Link>
+          )}
+        </SectionCard>
       )}
 
-      <div className="card p-1.5 mt-6">
-        <div className="font-serif text-[18px] font-semibold px-5 pt-4 pb-2">Recent bookings</div>
+      <SectionCard title="Recent bookings" right={<Link href="/agency/bookings" className="text-[12px] text-muted hover:text-cream pr-1">All bookings →</Link>}>
         <div className="hidden md:grid grid-cols-[1.4fr_1.6fr_1.4fr_.9fr_1fr] gap-3 px-5 py-3 text-[10px] uppercase tracking-[1px] text-muted border-b border-line">
-          <div>Guest</div>
-          <div>Apartment</div>
-          <div>Type</div>
-          <div className="text-right">Amount</div>
-          <div>When</div>
+          <div>Guest</div><div>Apartment</div><div>Type</div><div className="text-right">Amount</div><div>When</div>
         </div>
-        {bk.length === 0 && (
-          <div className="px-5 py-10 text-center text-muted text-[14px]">
-            No bookings yet — add an apartment and place its QR plaque in the room.
-          </div>
-        )}
+        {bk.length === 0 && <Empty>No bookings yet — add an apartment and place its QR plaque in the room.</Empty>}
         {bk.slice(0, 8).map((b) => (
           <div key={b.id} className="grid grid-cols-1 md:grid-cols-[1.4fr_1.6fr_1.4fr_.9fr_1fr] gap-2 md:gap-3 px-5 py-3.5 border-b border-line last:border-b-0 text-[14px] items-center">
             <div className="font-medium truncate">{b.guest_name || "Guest"}</div>
             <div className="text-creamDim truncate">{b.apartment_id ? aptName.get(b.apartment_id) ?? "—" : "—"}</div>
-            <div><span className="pill pill-on">{bookingType(b)}</span></div>
-            <div className="md:text-right font-serif">{eur(b.amount)}</div>
-            <div className="text-muted text-[13px]">{new Date(b.created_at).toLocaleDateString()}</div>
+            <div><span className="pill pill-on">{bookingLabel(b)}</span></div>
+            <div className="md:text-right font-serif text-[16px]">{eur(b.amount)}</div>
+            <div className="text-muted text-[13px]">{fmtDateTime(b.created_at)}</div>
           </div>
         ))}
-      </div>
+      </SectionCard>
     </div>
   );
 }

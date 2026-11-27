@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { RealGuestFlow } from "@/components/guest/RealGuestFlow";
 import type { DbApartment } from "@/lib/apartment";
+import { getAgencySettings, guestBranding } from "@/lib/agency-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -32,5 +33,6 @@ export default async function ApartmentGuestPage({
     }
   }
 
-  return <RealGuestFlow apt={data as DbApartment} />;
+  const settings = await getAgencySettings(admin, data.agency_id).catch(() => null);
+  return <RealGuestFlow apt={data as DbApartment} brand={settings ? guestBranding(settings) : undefined} />;
 }

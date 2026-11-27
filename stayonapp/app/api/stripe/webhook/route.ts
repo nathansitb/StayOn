@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendEmail, guestEmailHtml, agencyEmailHtml } from "@/lib/email";
 import { blockNightsForApartment } from "@/lib/guesty-store";
+import { getAgencySettings } from "@/lib/agency-settings";
 
 /** The booked night (extension). Today the guest flow books the next night. */
 function tomorrowISO(): string {
@@ -105,28 +106,36 @@ export async function POST(req: Request) {
     }
 
     const services = parseServices(m);
+    // Reference derived from the payment id so it matches the confirmation screen.
+    const reference = "SO-" + String(paymentId).slice(-8).toUpperCase();
 
     // One booking row per selected service.
     let firstId: string | null = null;
     for (let i = 0; i < services.length; i++) {
       const s = services[i];
       const payId = services.length > 1 ? `${paymentId}#${i}` : paymentId;
-      const { data: booking, error: insertError } = await admin
+      const row = {
+        agency_id: m.agency_id || null,
+        apartment_id: m.apartment_id || null,
+        guest_name: guestName,
+        flow: s.flow,
+        nights: s.nights,
+        late_time: s.lateTime,
+        cleaning_slot: s.cleaningSlot,
+        amount: s.amount,
+        status: "confirmed",
+        stripe_payment_id: payId,
+      };
+      // guest_email / check_in / reference exist once db/agency-v2.sql has run;
+      // if not yet, fall back to the original columns so no booking is ever lost.
+      let { data: booking, error: insertError } = await admin
         .from("bookings")
-        .insert({
-          agency_id: m.agency_id || null,
-          apartment_id: m.apartment_id || null,
-          guest_name: guestName,
-          flow: s.flow,
-          nights: s.nights,
-          late_time: s.lateTime,
-          cleaning_slot: s.cleaningSlot,
-          amount: s.amount,
-          status: "confirmed",
-          stripe_payment_id: payId,
-        })
+        .insert({ ...row, guest_email: guestEmail, check_in: checkIn, reference })
         .select("id")
         .single();
+      if (insertError && /column/i.test(insertError.message)) {
+        ({ data: booking, error: insertError } = await admin.from("bookings").insert(row).select("id").single());
+      }
 
       // Surface DB failures so Stripe retries and we can see them in the dashboard.
       if (insertError) {
@@ -146,17 +155,19 @@ export async function POST(req: Request) {
     }
 
     void firstId;
-    // Reference derived from the payment id so it matches the confirmation screen.
-    const reference = "SO-" + String(paymentId).slice(-8).toUpperCase();
 
     // Notify the guest and the agency (best-effort).
-    const [{ data: apt }, { data: profs }] = await Promise.all([
+    const [{ data: apt }, { data: profs }, settings] = await Promise.all([
       admin.from("apartments").select("name, location").eq("id", m.apartment_id).maybeSingle(),
       admin.from("profiles").select("email").eq("agency_id", m.agency_id).limit(1),
+      getAgencySettings(admin, m.agency_id || "").catch(() => null),
     ]);
     const aptName = apt?.name ?? "your apartment";
     const address = apt?.location ?? "";
-    const agencyEmail = profs?.[0]?.email as string | undefined;
+    const wantsEmail = settings ? settings.notifications.newBooking : true;
+    const agencyEmail = wantsEmail
+      ? settings?.notifications.email || (profs?.[0]?.email as string | undefined)
+      : undefined;
     const label = services.map((s) => s.label).join("  +  ");
     const hasNight = services.some((s) => s.flow === "night");
     const when = hasNight ? `From ${checkIn}` : services.map((s) => s.label).join(", ");

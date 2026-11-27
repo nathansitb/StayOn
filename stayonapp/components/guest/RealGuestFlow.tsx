@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { GuestBranding } from "@/lib/agency-settings";
 import { PhoneFrame, BackButton } from "./PhoneFrame";
 import { Photo } from "./Photo";
 import { Logo } from "@/components/ui/Logo";
@@ -49,7 +50,10 @@ function fmtDate(iso: string) {
 }
 const eur = (n: number) => "€" + n.toLocaleString("en-US");
 
-export function RealGuestFlow({ apt }: { apt: DbApartment }) {
+export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestBranding }) {
+  const maxNights = brand?.maxNights ?? 5;
+  const showNearby = brand?.showNearby ?? true;
+  const contact = brand && (brand.contactPhone || brand.contactEmail) ? brand : null;
   const [screen, setScreen] = useState<Screen>("welcome");
   const [cart, setCart] = useState<Service[]>([]);
   const [busy, setBusy] = useState(false);
@@ -118,7 +122,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
         const j = await r.json();
         if (!(r.ok && j.available)) {
           // Fetch the nearest available apartments to suggest instead.
-          try {
+          if (showNearby) try {
             const nr = await fetch(
               `/api/nearby?code=${encodeURIComponent(apt.public_code)}&night=${nightDate}`
             );
@@ -228,9 +232,12 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
         <div className="text-center mt-6">
           <div className="font-serif text-[20px] font-semibold">{apt.name}</div>
           <div className="text-muted text-[12.5px] mt-1">{apt.location || ""}</div>
+          {brand?.displayName && (
+            <div className="text-[11px] uppercase tracking-[1.5px] text-gold mt-3">Hosted by {brand.displayName}</div>
+          )}
         </div>
-        <p className="text-creamDim text-[14.5px] leading-[1.6] text-center mt-6 mb-6">
-          Would you like to extend your stay or request a service?
+        <p className="text-creamDim text-[14.5px] leading-[1.6] text-center mt-6 mb-6 whitespace-pre-line">
+          {brand?.welcomeMessage || "Would you like to extend your stay or request a service?"}
         </p>
         <div className="flex flex-col gap-3 mt-auto">
           {apt.extra_night && (
@@ -281,7 +288,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             <div className="flex items-center gap-4 bg-panel border border-line rounded-[2px] px-2 py-1.5">
               <button onClick={() => setNights(Math.max(1, nights - 1))} className="w-8 h-8 rounded-full bg-panel2 border border-line text-[18px] leading-none">−</button>
               <span className="font-serif text-[19px] font-semibold w-4 text-center">{nights}</span>
-              <button onClick={() => setNights(Math.min(5, nights + 1))} className="w-8 h-8 rounded-full bg-panel2 border border-line text-[18px] leading-none">+</button>
+              <button onClick={() => setNights(Math.min(maxNights, nights + 1))} className="w-8 h-8 rounded-full bg-panel2 border border-line text-[18px] leading-none">+</button>
             </div>
           </div>
 
@@ -305,6 +312,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
         <div className="px-[22px] pt-[70px] pb-[26px]">
           <div className="eyebrow">StayOn</div>
           <h1 className="h1">Late checkout</h1>
+          <p className="sub">Standard checkout is at {brand?.checkoutTime || "11:00"}. Keep the apartment a little longer.</p>
           <div className="mt-5">
             <label className="text-[12.5px] text-muted">Date</label>
             <input
@@ -475,6 +483,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             Receipt sent{booking?.email ? ` to ${booking.email}` : " to your email"}
           </div>
         </div>
+        {contact && <ContactCard c={contact} />}
         <button className="btn btn-ghost mt-6" onClick={() => { setCart([]); setBooking(null); go("welcome"); }}>Back to start</button>
       </div>
     );
@@ -512,6 +521,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
             </div>
           )}
 
+          {contact && <ContactCard c={contact} />}
           <button className="btn btn-primary mt-6" onClick={() => go("stay")}>Choose another date</button>
           <button className="btn btn-ghost mt-2.5" onClick={() => go("welcome")}>Back</button>
         </div>
@@ -531,6 +541,24 @@ function Row({ k, v, total = false }: { k: string; v: string; total?: boolean })
     <div className="flex justify-between items-center py-[14px] border-b border-line last:border-b-0 text-[14px]">
       <span className={total ? "font-serif text-[19px] font-semibold" : "text-muted"}>{k}</span>
       <span className={total ? "font-serif text-[19px] font-semibold" : "text-cream font-medium"}>{v}</span>
+    </div>
+  );
+}
+
+function ContactCard({ c }: { c: GuestBranding }) {
+  return (
+    <div className="card w-full px-[18px] py-3.5 mt-5 text-left text-[13px]">
+      <div className="text-muted text-[11px] uppercase tracking-[1.2px]">
+        Questions? {c.displayName ? `Contact ${c.displayName}` : "Contact your host"}
+      </div>
+      <div className="flex flex-col gap-1 mt-2">
+        {c.contactPhone && (
+          <a href={`tel:${c.contactPhone.replace(/\s/g, "")}`} className="text-cream hover:text-gold transition">{c.contactPhone}</a>
+        )}
+        {c.contactEmail && (
+          <a href={`mailto:${c.contactEmail}`} className="text-cream hover:text-gold transition">{c.contactEmail}</a>
+        )}
+      </div>
     </div>
   );
 }

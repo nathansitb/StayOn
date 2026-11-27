@@ -112,10 +112,6 @@ export function Landing() {
                 className="object-cover"
               />
             </div>
-            <div className="absolute -bottom-4 left-4 sm:left-6 bg-panel border border-line rounded-[2px] px-4 py-2.5 text-[12.5px] text-creamDim shadow-lg">
-              <span className="text-gold mr-1.5">●</span>
-              {t("plaqueCaption")}
-            </div>
           </div>
         </div>
       </Section>

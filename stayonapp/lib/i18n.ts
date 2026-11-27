@@ -106,7 +106,6 @@ export const STRINGS = {
     howTitle: "From scan to confirmation",
     howSub: "Four taps. No app, no front desk, no friction.",
     plaqueAlt: "The StayOn plaque on a bedside table",
-    plaqueCaption: "Real QR code — scan it",
     galleryEyebrow: "Made for Paris",
     galleryTitle: "For apartments guests never want to leave.",
     gallerySub:
@@ -341,7 +340,6 @@ export const STRINGS = {
     howTitle: "Du scan à la confirmation",
     howSub: "Quatre taps. Pas d’app, pas de réception, zéro friction.",
     plaqueAlt: "La plaque StayOn sur une table de chevet",
-    plaqueCaption: "Vrai QR code — scannez-le",
     galleryEyebrow: "Pensé pour Paris",
     galleryTitle: "Pour les appartements qu’on n’a jamais envie de quitter.",
     gallerySub:

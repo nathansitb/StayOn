@@ -6,7 +6,7 @@
   --line: rgba(243, 237, 225, 0.1);
   --line-strong: rgba(243, 237, 225, 0.18);
   --font-cormorant: "Cormorant Garamond", Georgia, serif;
-  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Jost", system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -22,6 +22,7 @@ body {
   background: radial-gradient(1200px 800px at 50% -10%, #17150f 0%, #0b0b0b 60%);
   color: #f3ede1;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.01em;
   min-height: 100vh;
 }
 

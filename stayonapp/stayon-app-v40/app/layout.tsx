@@ -7,7 +7,7 @@ import { CookieBanner } from "@/components/ui/CookieBanner";
 export const metadata: Metadata = {
   title: "StayOn — Extend the moment. In style.",
   description:
-    "Scan, extend your stay or request a late checkout, pay and get instant confirmation. StayOn beta.",
+    "Scan, extend your stay or request a late checkout, pay and get instant confirmation.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "StayOn" },
 };
 

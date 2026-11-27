@@ -1,7 +1,6 @@
 import { TopBar } from "@/components/ui/TopBar";
 import { Footer } from "@/components/ui/Footer";
 import { RealGuestFlow } from "@/components/guest/RealGuestFlow";
-import { DemoBanner } from "@/components/ui/DemoBanner";
 import type { DbApartment } from "@/lib/apartment";
 
 /**
@@ -27,7 +26,6 @@ const DEMO_APT: DbApartment = {
 export default function StayPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <DemoBanner />
       <TopBar />
       <main className="flex-1 w-full flex justify-center">
         <RealGuestFlow apt={DEMO_APT} />

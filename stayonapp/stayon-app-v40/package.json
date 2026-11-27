@@ -2,7 +2,7 @@
   "name": "stayon",
   "version": "0.1.0",
   "private": true,
-  "description": "StayOn — Extend the moment. In style. Beta demo.",
+  "description": "StayOn — Extend the moment. In style.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -293,6 +293,7 @@ export function Landing() {
           <div className="flex items-center gap-5 text-[12.5px] text-muted">
             <Link href="/privacy" className="hover:text-cream transition">Privacy</Link>
             <Link href="/terms" className="hover:text-cream transition">Terms</Link>
+            <Link href="/mentions-legales" className="hover:text-cream transition">{lang === "fr" ? "Mentions légales" : "Legal notice"}</Link>
           </div>
         </Section>
       </footer>

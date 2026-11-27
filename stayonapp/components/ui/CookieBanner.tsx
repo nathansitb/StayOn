@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLang } from "@/lib/store";
 
 const KEY = "stayon-cookie-consent";
 
 /**
- * Lightweight cookie notice. StayOn only uses strictly-necessary cookies
- * (auth/security), so this is an informational banner — no tracking is loaded
- * either way. Dismissal is remembered locally so it shows only once.
+ * Information notice only: StayOn uses strictly-necessary cookies (login,
+ * security), which need no consent under CNIL rules. It is therefore never
+ * shown on the guest pages (/a/…, /stay), where it would hide the booking buttons.
  */
 export function CookieBanner() {
   const [show, setShow] = useState(false);
+  const path = usePathname() || "";
+  const { lang } = useLang();
 
   useEffect(() => {
     try {
@@ -30,25 +34,25 @@ export function CookieBanner() {
     setShow(false);
   }
 
-  if (!show) return null;
+  if (!show || path.startsWith("/a/") || path.startsWith("/stay")) return null;
+  const fr = lang === "fr";
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6 sm:pb-6">
-      <div className="mx-auto max-w-[720px] rounded-[3px] border border-line bg-panel/95 backdrop-blur px-5 py-4 shadow-2xl sm:flex sm:items-center sm:gap-5">
-        <p className="text-[13px] leading-[1.6] text-creamDim">
-          StayOn n&apos;utilise que des cookies strictement nécessaires à son
-          fonctionnement (connexion, sécurité). Pas de publicité, pas de
-          traceurs.{" "}
+    <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-6 sm:pb-6 pointer-events-none">
+      <div className="pointer-events-auto mx-auto max-w-[620px] rounded-[3px] border border-line bg-panel/95 backdrop-blur px-4 py-3 shadow-2xl flex items-center gap-4">
+        <p className="text-[12px] leading-[1.5] text-creamDim flex-1">
+          {fr
+            ? "Uniquement des cookies indispensables (connexion, sécurité). Aucun traceur."
+            : "Only essential cookies (login, security). No tracking."}{" "}
           <Link href="/privacy" className="text-gold hover:text-cream transition">
-            En savoir plus
+            {fr ? "En savoir plus" : "Learn more"}
           </Link>
-          .
         </p>
         <button
           onClick={accept}
-          className="mt-3 sm:mt-0 shrink-0 rounded-[2px] bg-cream px-5 py-2 text-[11px] font-medium uppercase tracking-[1.5px] text-[#111] hover:opacity-90 transition"
+          className="shrink-0 rounded-[2px] bg-cream px-4 py-2 text-[10.5px] font-medium uppercase tracking-[1.3px] text-[#111] hover:opacity-90 transition"
         >
-          J&apos;ai compris
+          OK
         </button>
       </div>
     </div>

@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [forgot, setForgot] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,6 +26,14 @@ export default function LoginPage() {
     setError(null);
     setInfo(null);
     try {
+      if (forgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("If an account exists for this e-mail, a reset link is on its way. Open it on this device.");
+        return;
+      }
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -66,6 +75,7 @@ export default function LoginPage() {
               key={m}
               onClick={() => {
                 setMode(m);
+                setForgot(false);
                 setError(null);
                 setInfo(null);
               }}
@@ -100,7 +110,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          <div className="field">
+          {!forgot && <div className="field">
             <label>Password</label>
             <input
               type="password"
@@ -110,13 +120,22 @@ export default function LoginPage() {
               minLength={6}
               required
             />
-          </div>
+          </div>}
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={() => { setForgot(!forgot); setError(null); setInfo(null); }}
+              className="self-end -mt-1 text-[12px] text-muted hover:text-cream transition"
+            >
+              {forgot ? "← Back to log in" : "Forgot password?"}
+            </button>
+          )}
 
           {error && <div className="text-[13px] text-[#e0857a]">{error}</div>}
           {info && <div className="text-[13px] text-gold">{info}</div>}
 
           <button type="submit" className="btn btn-primary mt-2" disabled={busy}>
-            {busy ? "…" : mode === "login" ? "Log in" : "Create account"}
+            {busy ? "…" : forgot ? "Send reset link" : mode === "login" ? "Log in" : "Create account"}
           </button>
         </form>
       </div>

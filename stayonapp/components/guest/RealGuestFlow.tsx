@@ -61,6 +61,7 @@ export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestB
   const maxNights = brand?.maxNights ?? 5;
   const showNearby = brand?.showNearby ?? true;
   const contact = brand && (brand.contactPhone || brand.contactEmail) ? brand : null;
+  const isDemo = apt.public_code === "demo";
   const [screen, setScreen] = useState<Screen>("welcome");
   const [cart, setCart] = useState<Service[]>([]);
   const [busy, setBusy] = useState(false);
@@ -417,7 +418,16 @@ export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestB
             <Row k="Total" v={eur(total)} total />
           </div>
           <button className="btn btn-ghost mt-4" onClick={() => go("welcome")}>+ Add another service</button>
-          <button className="btn btn-primary mt-2.5" onClick={() => go("payment")}>Continue to payment</button>
+          <button className="btn btn-primary mt-2.5" disabled={busy || cart.length === 0} onClick={pay}>
+            {busy ? "Opening secure payment…" : `Pay ${eur(total)}`}
+          </button>
+          <div className="flex items-center justify-center gap-1.5 text-muted text-[11px] mt-4">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x="3" y="11" width="18" height="10" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Secure payment · card, Apple&nbsp;Pay &amp; Google&nbsp;Pay · via Stripe
+          </div>
         </div>
       </div>
     );
@@ -479,7 +489,7 @@ export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestB
             </div>
           )}
           <div className="flex justify-between w-full mt-3.5 items-baseline">
-            <span className="text-muted text-[13px]">Total paid</span>
+            <span className="text-muted text-[13px]">{isDemo ? "Total" : "Total paid"}</span>
             <span className="font-serif text-[19px] font-semibold">{eur(totalPaid)}</span>
           </div>
 
@@ -487,7 +497,9 @@ export function RealGuestFlow({ apt, brand }: { apt: DbApartment; brand?: GuestB
             <div className="text-muted text-[11px] uppercase tracking-[1.5px] mt-6">Reference · {booking.reference}</div>
           )}
           <div className="text-muted text-[12px] mt-1.5">
-            Receipt sent{booking?.email ? ` to ${booking.email}` : " to your email"}
+            {isDemo
+              ? "Example booking — no payment taken, no e-mail sent."
+              : `Receipt sent${booking?.email ? ` to ${booking.email}` : " to your email"}`}
           </div>
         </div>
         {contact && <ContactCard c={contact} />}

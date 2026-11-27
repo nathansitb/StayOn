@@ -4,10 +4,22 @@ import { LangProvider } from "@/lib/store";
 import { AppProvider } from "@/lib/appStore";
 import { CookieBanner } from "@/components/ui/CookieBanner";
 
+const DESCRIPTION =
+  "A QR plaque in every apartment: guests book an extra night, a late checkout or a cleaning in seconds. New revenue for agencies, zero extra work.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://stay-on.app"),
   title: "StayOn — Extend the moment. In style.",
-  description:
-    "Scan, extend your stay or request a late checkout, pay and get instant confirmation.",
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: "https://stay-on.app",
+    siteName: "StayOn",
+    title: "StayOn — Extra nights, late checkouts, cleanings. Sold on autopilot.",
+    description: DESCRIPTION,
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "The StayOn plaque on a bedside table" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.jpg"] },
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "StayOn" },
 };
 

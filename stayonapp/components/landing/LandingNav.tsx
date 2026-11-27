@@ -37,7 +37,7 @@ export function LandingNav() {
           </div>
           <Link
             href="/login"
-            className="hidden sm:inline-flex px-4 py-2 rounded-[2px] bg-cream text-[#111] text-[13px] font-medium"
+            className="inline-flex px-3 sm:px-4 py-2 rounded-[2px] bg-cream text-[#111] text-[12.5px] sm:text-[13px] font-medium whitespace-nowrap"
           >
             {t("navLogin")}
           </Link>

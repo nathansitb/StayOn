@@ -103,7 +103,7 @@ export const HOST_BENEFITS: Feature[] = [
     title: bi("Extra revenue, no effort", "Revenu supplémentaire sans effort"),
     points: [
       bi("Extra nights, late checkouts and cleanings, booked straight from the room.", "Nuits en plus, départs tardifs et ménages, réservés directement depuis le logement."),
-      bi("100% collected by the host or agency.", "100 % du montant encaissé par l’hôte ou l’agence."),
+      bi("Paid straight to you — StayOn only takes a small commission on what it sells.", "Encaissé pour vous — StayOn ne prend qu’une petite commission sur ce qu’il vend."),
       bi("Three ways to earn, zero extra management.", "Trois sources de revenu, sans gestion supplémentaire."),
     ],
   },

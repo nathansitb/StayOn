@@ -34,22 +34,22 @@ function Section({
 function BenefitGrid({ features }: { features: Feature[] }) {
   const { lang } = useLang();
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-7 sm:mt-12">
       {features.map((f, i) => (
         <div
           key={i}
-          className="card p-6 hover:border-lineStrong transition"
+          className="card p-5 sm:p-6 hover:border-lineStrong transition"
           style={{ borderColor: "var(--line)" }}
         >
-          <div className="w-11 h-11 rounded-xl bg-panel2 border border-line flex items-center justify-center text-gold text-[20px]">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-panel2 border border-line flex items-center justify-center text-gold text-[17px] sm:text-[20px]">
             {f.icon}
           </div>
-          <div className="font-serif text-[19px] font-semibold mt-4">
+          <div className="font-serif text-[17px] sm:text-[19px] font-semibold mt-3 sm:mt-4">
             {pick(f.title, lang)}
           </div>
           <ul className="mt-3 space-y-2">
             {f.points.map((p, j) => (
-              <li key={j} className="flex gap-2.5 text-[14px] text-creamDim leading-[1.5]">
+              <li key={j} className="flex gap-2.5 text-[13.5px] sm:text-[14px] text-creamDim leading-[1.5]">
                 <span className="text-gold mt-0.5 shrink-0">·</span>
                 <span>{pick(p, lang)}</span>
               </li>
@@ -73,29 +73,29 @@ export function Landing() {
   return (
     <div>
       {/* HERO */}
-      <Section className="pt-16 sm:pt-24 pb-16">
-        <div className="grid lg:grid-cols-[1.05fr_.95fr] gap-12 items-center">
+      <Section className="pt-9 sm:pt-24 pb-10 sm:pb-16">
+        <div className="grid lg:grid-cols-[1.05fr_.95fr] gap-8 lg:gap-12 items-center">
           <div>
-            <span className="inline-flex items-center gap-2 text-[11px] tracking-[2px] uppercase text-gold border border-line rounded-[2px] px-3.5 py-1.5">
+            <span className="inline-flex items-center gap-2 text-[9.5px] sm:text-[11px] tracking-[1.5px] sm:tracking-[2px] uppercase text-gold border border-line rounded-[2px] px-2.5 sm:px-3.5 py-1 sm:py-1.5">
               <span className="w-1 h-1 rounded-full bg-gold" /> {t("heroBadge")}
             </span>
-            <h1 className="font-serif text-[42px] sm:text-[56px] leading-[1.05] font-semibold mt-6">
+            <h1 className="font-serif text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.08] sm:leading-[1.05] font-semibold mt-4 sm:mt-6">
               {t("heroTitle")}
             </h1>
-            <p className="text-creamDim text-[17px] leading-[1.6] mt-6 max-w-[520px]">
+            <p className="text-creamDim text-[15px] sm:text-[17px] leading-[1.6] mt-4 sm:mt-6 max-w-[520px]">
               {t("heroSub")}
             </p>
-            <div className="flex flex-wrap gap-3 mt-9">
-              <Link href="/stay" className="btn btn-gold !w-auto px-7">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2.5 sm:gap-3 mt-7 sm:mt-9">
+              <Link href="/stay" className="btn btn-gold sm:!w-auto px-7 max-sm:!py-3.5">
                 {t("ctaGuestDemo")} <span className="text-[18px]">↗</span>
               </Link>
-              <Link href="/login" className="btn btn-ghost !w-auto px-7">
+              <Link href="/login" className="btn btn-ghost sm:!w-auto px-7 max-sm:!py-3.5">
                 {t("ctaHostSpace")}
               </Link>
             </div>
             <Link
               href="/dashboard"
-              className="inline-block text-[13.5px] text-muted hover:text-cream transition mt-5 underline underline-offset-4"
+              className="inline-block text-[13px] sm:text-[13.5px] text-muted hover:text-cream transition mt-4 sm:mt-5 underline underline-offset-4"
             >
               {t("ctaSeeDashboard")} →
             </Link>
@@ -118,7 +118,7 @@ export function Landing() {
       </Section>
 
       {/* STATS */}
-      <Section className="pb-16">
+      <Section className="pb-10 sm:pb-16">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line rounded-2xl overflow-hidden border border-line">
           {[
             { n: "12,400+", l: t("statStays") },
@@ -126,33 +126,33 @@ export function Landing() {
             { n: eur(486000), l: t("statRevenueGen") },
             { n: "18.4%", l: t("statConvRate") },
           ].map((s, i) => (
-            <div key={i} className="bg-bg p-6 text-center">
-              <div className="font-serif text-[30px] sm:text-[34px] font-semibold text-gold">
+            <div key={i} className="bg-bg px-3 py-4 sm:p-6 text-center">
+              <div className="font-serif text-[23px] sm:text-[34px] font-semibold text-gold">
                 {s.n}
               </div>
-              <div className="text-[12.5px] text-muted mt-1.5">{s.l}</div>
+              <div className="text-[11px] sm:text-[12.5px] text-muted mt-1 sm:mt-1.5">{s.l}</div>
             </div>
           ))}
         </div>
       </Section>
 
       {/* HOW IT WORKS */}
-      <Section id="how" className="py-16 scroll-mt-20">
+      <Section id="how" className="py-10 sm:py-16 scroll-mt-20">
         <div className="text-center">
           <div className="eyebrow">StayOn</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">{t("howTitle")}</h2>
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">{t("howTitle")}</h2>
           <p className="sub max-w-[560px] mx-auto">{t("howSub")}</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-7 sm:mt-12">
           {STEPS.map((s, i) => (
-            <div key={i} className="card p-6 relative">
-              <div className="font-serif text-[40px] font-semibold text-panel2" style={{ WebkitTextStroke: "1px var(--line-strong)" }}>
+            <div key={i} className="card p-4 sm:p-6 relative">
+              <div className="font-serif text-[28px] sm:text-[40px] leading-none font-semibold text-panel2" style={{ WebkitTextStroke: "1px var(--line-strong)" }}>
                 {s.n}
               </div>
-              <div className="font-serif text-[19px] font-semibold mt-2">
+              <div className="font-serif text-[16px] sm:text-[19px] font-semibold mt-2">
                 {pick(s.title, lang)}
               </div>
-              <p className="text-[14px] text-creamDim leading-[1.55] mt-2.5">
+              <p className="text-[12.5px] sm:text-[14px] text-creamDim leading-[1.5] sm:leading-[1.55] mt-1.5 sm:mt-2.5">
                 {pick(s.text, lang)}
               </p>
             </div>
@@ -161,15 +161,15 @@ export function Landing() {
       </Section>
 
       {/* GALLERY */}
-      <Section className="py-16">
+      <Section className="py-10 sm:py-16">
         <div className="max-w-[640px]">
           <div className="eyebrow">{t("galleryEyebrow")}</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">{t("galleryTitle")}</h2>
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">{t("galleryTitle")}</h2>
           <p className="sub">{t("gallerySub")}</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+        <div className="flex md:grid md:grid-cols-3 gap-3 md:gap-4 mt-7 md:mt-10 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar -mx-5 px-5 md:mx-0 md:px-0">
           {GALLERY.map((g) => (
-            <figure key={g.src} className="group">
+            <figure key={g.src} className="group shrink-0 w-[78%] md:w-auto snap-start">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] border border-line">
                 <Image
                   src={g.src}
@@ -179,17 +179,17 @@ export function Landing() {
                   className="object-cover transition duration-700 group-hover:scale-[1.04]"
                 />
               </div>
-              <figcaption className="mt-3 text-[13.5px] text-creamDim">{t(g.k)}</figcaption>
+              <figcaption className="mt-2.5 sm:mt-3 text-[12.5px] sm:text-[13.5px] text-creamDim">{t(g.k)}</figcaption>
             </figure>
           ))}
         </div>
       </Section>
 
       {/* GUEST BENEFITS */}
-      <Section id="guests" className="py-16 scroll-mt-20">
+      <Section id="guests" className="py-10 sm:py-16 scroll-mt-20">
         <div className="max-w-[620px]">
           <div className="eyebrow">{t("navGuests")}</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">
             {t("guestBenefitsTitle")}
           </h2>
           <p className="sub">{t("guestBenefitsSub")}</p>
@@ -198,10 +198,10 @@ export function Landing() {
       </Section>
 
       {/* HOST BENEFITS */}
-      <Section id="hosts" className="py-16 scroll-mt-20">
+      <Section id="hosts" className="py-10 sm:py-16 scroll-mt-20">
         <div className="max-w-[620px]">
           <div className="eyebrow">{t("navHosts")}</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">
             {t("hostBenefitsTitle")}
           </h2>
           <p className="sub">{t("hostBenefitsSub")}</p>
@@ -210,15 +210,15 @@ export function Landing() {
       </Section>
 
       {/* TESTIMONIALS */}
-      <Section className="py-16">
-        <h2 className="font-serif text-[28px] font-semibold text-center">
+      <Section className="py-10 sm:py-16">
+        <h2 className="font-serif text-[24px] sm:text-[28px] font-semibold text-center">
           {t("testimonialsTitle")}
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mt-7 sm:mt-10">
           {TESTIMONIALS.map((tm, i) => (
-            <figure key={i} className="card p-6">
+            <figure key={i} className="card p-5 sm:p-6">
               <div className="text-gold text-[24px] font-serif leading-none">“</div>
-              <blockquote className="font-serif text-[17px] leading-[1.5] mt-2">
+              <blockquote className="font-serif text-[16px] sm:text-[17px] leading-[1.5] mt-2">
                 {pick(tm.quote, lang)}
               </blockquote>
               <figcaption className="mt-5 text-[13px]">
@@ -231,20 +231,20 @@ export function Landing() {
       </Section>
 
       {/* PRICING */}
-      <Section id="pricing" className="py-16 scroll-mt-20">
+      <Section id="pricing" className="py-10 sm:py-16 scroll-mt-20">
         <div className="text-center">
           <div className="eyebrow">{t("navPricing")}</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">{t("pricingTitle")}</h2>
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">{t("pricingTitle")}</h2>
           <p className="sub max-w-[520px] mx-auto">{t("pricingSub")}</p>
         </div>
-        <div className="mt-12 max-w-[460px] mx-auto">
+        <div className="mt-7 sm:mt-12 max-w-[460px] mx-auto">
           {/* Free */}
-          <div className="card p-8">
+          <div className="card p-6 sm:p-8">
             <div className="font-serif text-[22px] font-semibold">
               {pick(PRICING.free.name, lang)}
             </div>
             <div className="flex items-baseline gap-2 mt-4">
-              <span className="font-serif text-[44px] font-semibold">{PRICING.free.price}</span>
+              <span className="font-serif text-[36px] sm:text-[44px] font-semibold">{PRICING.free.price}</span>
               <span className="text-muted text-[13px]">{pick(PRICING.free.per, lang)}</span>
             </div>
             <ul className="mt-6 space-y-3">
@@ -254,7 +254,7 @@ export function Landing() {
                 </li>
               ))}
             </ul>
-            <Link href="/login" className="btn btn-gold mt-8">
+            <Link href="/login" className="btn btn-gold mt-6 sm:mt-8 max-sm:!py-3.5">
               {pick(PRICING.free.cta, lang)}
             </Link>
           </div>
@@ -266,38 +266,38 @@ export function Landing() {
       </Section>
 
       {/* FAQ — the answers search engines and AI assistants quote */}
-      <Section id="faq" className="py-16 scroll-mt-20">
+      <Section id="faq" className="py-10 sm:py-16 scroll-mt-20">
         <div className="text-center">
           <div className="eyebrow">FAQ</div>
-          <h2 className="font-serif text-[34px] font-semibold mt-3">{lang === "fr" ? "StayOn en quelques questions" : "StayOn in a few questions"}</h2>
+          <h2 className="font-serif text-[26px] sm:text-[34px] leading-[1.15] font-semibold mt-2 sm:mt-3">{lang === "fr" ? "StayOn en quelques questions" : "StayOn in a few questions"}</h2>
         </div>
-        <div className="max-w-[760px] mx-auto mt-10 border-t border-line">
+        <div className="max-w-[760px] mx-auto mt-7 sm:mt-10 border-t border-line">
           {FAQ.map((f, i) => (
             <details key={i} className="group border-b border-line" open={i === 0}>
-              <summary className="flex items-center justify-between gap-6 py-5 cursor-pointer list-none">
-                <h3 className="font-serif text-[20px] font-semibold">{f.q[lang]}</h3>
+              <summary className="flex items-center justify-between gap-4 sm:gap-6 py-4 sm:py-5 cursor-pointer list-none">
+                <h3 className="font-serif text-[17px] sm:text-[20px] leading-[1.3] font-semibold">{f.q[lang]}</h3>
                 <span className="text-gold text-[20px] transition group-open:rotate-45">+</span>
               </summary>
-              <p className="text-creamDim text-[15px] leading-[1.7] pb-6 -mt-1">{f.a[lang]}</p>
+              <p className="text-creamDim text-[14px] sm:text-[15px] leading-[1.65] sm:leading-[1.7] pb-5 sm:pb-6 -mt-1">{f.a[lang]}</p>
             </details>
           ))}
         </div>
       </Section>
 
       {/* FINAL CTA */}
-      <Section className="py-20">
+      <Section className="py-10 sm:py-20">
         <div
-          className="rounded-[4px] border border-lineStrong p-10 sm:p-16 text-center"
+          className="rounded-[4px] border border-lineStrong px-6 py-9 sm:p-16 text-center"
           style={{ background: "#101010" }}
         >
           <div className="font-serif text-[26px] leading-[0.6] text-gold">↗</div>
-          <h2 className="font-serif text-[36px] font-semibold mt-5">{t("finalCtaTitle")}</h2>
-          <p className="text-creamDim text-[16px] mt-4">{t("finalCtaSub")}</p>
-          <div className="flex flex-wrap gap-3 justify-center mt-8">
-            <Link href="/login" className="btn btn-gold !w-auto px-8">
+          <h2 className="font-serif text-[26px] sm:text-[36px] leading-[1.15] font-semibold mt-4 sm:mt-5">{t("finalCtaTitle")}</h2>
+          <p className="text-creamDim text-[14.5px] sm:text-[16px] mt-3 sm:mt-4">{t("finalCtaSub")}</p>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2.5 sm:gap-3 justify-center mt-6 sm:mt-8">
+            <Link href="/login" className="btn btn-gold sm:!w-auto px-8 max-sm:!py-3.5">
               {pick(PRICING.free.cta, lang)}
             </Link>
-            <Link href="/stay" className="btn btn-ghost !w-auto px-8">
+            <Link href="/stay" className="btn btn-ghost sm:!w-auto px-8 max-sm:!py-3.5">
               {t("tryDemo")}
             </Link>
           </div>

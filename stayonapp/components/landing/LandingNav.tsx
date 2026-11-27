@@ -8,7 +8,7 @@ export function LandingNav() {
   const { lang, setLang, t } = useLang();
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-bg/70 border-b border-line">
-      <nav className="max-w-[1180px] mx-auto px-5 sm:px-7 h-16 flex items-center justify-between gap-4">
+      <nav className="max-w-[1180px] mx-auto px-5 sm:px-7 h-14 sm:h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center text-cream pt-1.5">
           <Logo size={22} />
         </Link>
@@ -28,7 +28,7 @@ export function LandingNav() {
               <button
                 key={l}
                 onClick={() => setLang(l)}
-                className={`px-2.5 py-1.5 rounded-[2px] text-[12px] font-medium transition ${
+                className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-[2px] text-[11px] sm:text-[12px] font-medium transition ${
                   lang === l ? "bg-panel2 text-cream" : "text-muted"
                 }`}
               >
@@ -38,7 +38,7 @@ export function LandingNav() {
           </div>
           <Link
             href="/login"
-            className="inline-flex px-3 sm:px-4 py-2 rounded-[2px] bg-cream text-[#111] text-[12.5px] sm:text-[13px] font-medium whitespace-nowrap"
+            className="inline-flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-[2px] bg-cream text-[#111] text-[12.5px] sm:text-[13px] font-medium whitespace-nowrap"
           >
             {t("navLogin")}
           </Link>

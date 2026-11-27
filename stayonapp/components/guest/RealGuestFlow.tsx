@@ -202,7 +202,7 @@ export function RealGuestFlow({ apt }: { apt: DbApartment }) {
 
   const img =
     apt.image_url ||
-    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=900&q=80&auto=format&fit=crop";
+    "/photos/haussmann-900.webp";
 
   const dateInput =
     "bg-panel border border-line rounded-[2px] px-3 py-2 text-[14px] text-cream w-full";

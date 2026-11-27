@@ -11,7 +11,7 @@ import {
   pick,
   type Feature,
 } from "@/lib/content";
-import { Qr } from "@/components/ui/Qr";
+import Image from "next/image";
 import { Logo } from "@/components/ui/Logo";
 
 function Section({
@@ -60,6 +60,12 @@ function BenefitGrid({ features }: { features: Feature[] }) {
   );
 }
 
+const GALLERY = [
+  { src: "/photos/haussmann-1536.webp", k: "gallery1" },
+  { src: "/photos/loft-1536.webp", k: "gallery2" },
+  { src: "/photos/mansarde-1536.webp", k: "gallery3" },
+] as const;
+
 export function Landing() {
   const { lang, t, eur } = useLang();
 
@@ -94,9 +100,22 @@ export function Landing() {
             </Link>
           </div>
 
-          {/* hero visual: the in-room plaque */}
-          <div className="flex justify-center">
-            <HeroPlaque />
+          {/* hero visual: the real plaque, in a room, with a working QR code */}
+          <div className="relative">
+            <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[4px] border border-lineStrong shadow-[0_30px_80px_rgba(0,0,0,.55)]">
+              <Image
+                src="/photos/plaque-1536.webp"
+                alt={t("plaqueAlt")}
+                fill
+                priority
+                sizes="(min-width: 1024px) 560px, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-4 left-4 sm:left-6 bg-panel border border-line rounded-[2px] px-4 py-2.5 text-[12.5px] text-creamDim shadow-lg">
+              <span className="text-gold mr-1.5">●</span>
+              {t("plaqueCaption")}
+            </div>
           </div>
         </div>
       </Section>
@@ -140,6 +159,31 @@ export function Landing() {
                 {pick(s.text, lang)}
               </p>
             </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* GALLERY */}
+      <Section className="py-16">
+        <div className="max-w-[640px]">
+          <div className="eyebrow">{t("galleryEyebrow")}</div>
+          <h2 className="font-serif text-[34px] font-semibold mt-3">{t("galleryTitle")}</h2>
+          <p className="sub">{t("gallerySub")}</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+          {GALLERY.map((g) => (
+            <figure key={g.src} className="group">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] border border-line">
+                <Image
+                  src={g.src}
+                  alt={t(g.k)}
+                  fill
+                  sizes="(min-width: 768px) 380px, 100vw"
+                  className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                />
+              </div>
+              <figcaption className="mt-3 text-[13.5px] text-creamDim">{t(g.k)}</figcaption>
+            </figure>
           ))}
         </div>
       </Section>
@@ -256,30 +300,6 @@ export function Landing() {
           </div>
         </Section>
       </footer>
-    </div>
-  );
-}
-
-function HeroPlaque() {
-  const { t } = useLang();
-  return (
-    <div
-      className="w-[300px] rounded-[4px] p-9 text-center relative text-cream"
-      style={{
-        background: "#121110",
-        border: "1px solid var(--line-strong)",
-        boxShadow: "0 30px 80px rgba(0,0,0,.5)",
-      }}
-    >
-      <div className="flex justify-center pt-3">
-        <Logo size={40} tagline />
-      </div>
-      <div className="w-[120px] h-[120px] mx-auto mt-7 bg-white rounded-2xl p-3">
-        <Qr seed={7} className="w-full h-full" />
-      </div>
-      <div className="text-[12px] text-muted mt-5">
-        {t("scanHint").split("·")[0]}
-      </div>
     </div>
   );
 }

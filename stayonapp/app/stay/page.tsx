@@ -14,7 +14,7 @@ const DEMO_APT: DbApartment = {
   public_code: "demo",
   name: "Champs Élysées",
   location: "Paris 8ème",
-  image_url: null,
+  image_url: "/photos/haussmann-900.webp",
   extend_price: 600,
   extra_night: true,
   late_checkout: true,
